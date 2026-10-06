@@ -1,4 +1,82 @@
 /* Owner: Victoria
    Allgemeines Design + Ei- und Haustier-Screen (siehe PROJEKTPLAN.md, Abschnitt 4) */
 
-/* TODO Victoria: Design, Tier-Animation (z. B. mit @keyframes) */
+/* FR1.1: Versteckte Screens, Fehlermeldung und Countdown bleiben ausgeblendet. */
+[hidden] { display: none !important; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px 16px;
+  background: #f0f7f4;
+  color: #243b32;
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}
+h1 { text-align: center; }
+section {
+  max-width: 620px;
+  margin: 24px auto;
+  padding: 24px;
+  background: white;
+  border: 1px solid #c5dacf;
+  border-radius: 16px;
+}
+h2 { margin-top: 0; }
+button, input { font: inherit; }
+button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #27664b;
+  border-radius: 8px;
+  background: #27664b;
+  color: white;
+  cursor: pointer;
+}
+button:hover { background: #1d4c38; }
+button:focus-visible, input:focus-visible {
+  outline: 3px solid #bf7300;
+  outline-offset: 3px;
+}
+#egg-name-input {
+  max-width: 100%;
+  padding: 8px;
+  border: 1px solid #637c70;
+  border-radius: 6px;
+}
+#egg-form label { display: inline-block; margin: 6px; }
+#egg-start-button { display: block; margin-top: 20px; }
+#egg-name-error { color: #a32020; }
+#egg-countdown-box { text-align: center; font-weight: bold; }
+
+/* FR1.1: Ein kleines Wippen macht Ei und Tier lebendig. */
+#egg-image, #pet-creature {
+  text-align: center;
+  font-size: 88px;
+  margin: 20px 0;
+  animation: pet-bounce 2s ease-in-out infinite;
+}
+@keyframes pet-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #egg-image, #pet-creature { animation: none; }
+}
+
+/* FR1.2, NFR1.1: Alle Bedürfnisse und vier Aktionen sind direkt erreichbar. */
+#pet-needs p {
+  display: grid;
+  grid-template-columns: 125px 1fr 32px;
+  gap: 8px;
+  align-items: center;
+}
+progress { width: 100%; height: 20px; accent-color: #27664b; }
+#pet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#pet-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+@media (max-width: 400px) {
+  section { padding: 16px; }
+  #pet-needs p { grid-template-columns: 1fr 32px; }
+  #pet-needs progress { grid-row: 2; grid-column: 1 / 3; }
+  #pet-actions { grid-template-columns: 1fr; }
+}
