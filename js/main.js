@@ -5,18 +5,90 @@
 // Zum Testen auf 60 setzen (1 echte Sekunde = 1 Spielminute). Vor dem Commit wieder auf 1!
 const SPEED = 1;
 
+const DECAY_EVERY_SECONDS = 10;   // alle 10 Spielsekunden sinken die Bedürfnisse (Abschnitt 2.2)
+const SAVE_EVERY_SECONDS = 5;     // alle 5 echten Sekunden wird gespeichert (Abschnitt 6)
+
 // Der aktuelle Spielstand. Alle Dateien dürfen diese Variablen lesen und ändern.
 let creature = null;
 let coins = 0;
 
-// Zeigt genau einen Screen an und versteckt die anderen.
+// Zähler für die Spieluhr (werden nicht gespeichert).
+let gameSeconds = 0;   // Spielsekunden seit dem Schlüpfen → für decayNeeds()
+let realSeconds = 0;   // echte Sekunden seit dem Start → für das Speichern alle 5 s
+
+// FR1.1, FR3.1: Zeigt genau einen Screen an und versteckt die anderen.
 // name ist "egg", "pet", "battle" oder "history".
 function showScreen(name) {
-  // TODO Erol
+  const allNames = ["egg", "pet", "battle", "history"];
+  for (const screenName of allNames) {
+    const section = document.getElementById("screen-" + screenName);
+    section.hidden = (screenName !== name);
+  }
 }
 
-// TODO Erol:
-// 1. creature und coins mit loadCreature() und loadCoins() laden
-// 2. passenden Screen anzeigen (kein Tier → "egg", sonst "pet")
-// 3. Spieluhr starten: jede Sekunde (nur wenn der Tab sichtbar ist)
-//    updateEvolution(), alle 10 Sekunden decayNeeds(), alle 5 Sekunden saveCreature()
+// FR1.2, FR2.2, DH10: Lässt 1 Spielsekunde vergehen.
+function passGameSecond() {
+  // Bedürfnisse sinken erst nach dem Schlüpfen, alle 10 Spielsekunden um 1.
+  if (creature.stage !== "Egg") {
+    gameSeconds = gameSeconds + 1;
+    if (gameSeconds % DECAY_EVERY_SECONDS === 0) {
+      decayNeeds(creature);
+    }
+  }
+
+  // Countdown oder Evolutions-Timer um 1 Sekunde weiterzählen.
+  const stageChanged = updateEvolution(creature);
+  if (stageChanged) {
+    saveCreature(creature);   // DH10: neues Stadium sofort speichern
+    if (creature.stage === "Baby") {
+      showScreen("pet");      // FR1.1: Das Tier ist geschlüpft → Haustier-Screen
+    }
+  }
+}
+
+// FR2.1, DH4: Wird jede echte Sekunde aufgerufen.
+function tick() {
+  // Die Zeit läuft nur, wenn es ein Tier gibt und der Tab sichtbar ist (Abschnitt 2).
+  if (creature === null || document.hidden) {
+    return;
+  }
+
+  // Mit SPEED = 60 vergehen pro echter Sekunde 60 Spielsekunden.
+  for (let i = 0; i < SPEED; i++) {
+    passGameSecond();
+  }
+
+  // Alle 5 Sekunden speichern, damit gesunkene Bedürfnisse und Timer erhalten bleiben.
+  realSeconds = realSeconds + 1;
+  if (realSeconds % SAVE_EVERY_SECONDS === 0) {
+    saveCreature(creature);
+  }
+
+  updatePetScreen(creature, coins);
+}
+
+// FR2.1, DH11: Zuerst alles laden, erst danach einen Screen anzeigen.
+function startGame() {
+  creature = loadCreature();
+  coins = loadCoins();
+
+  // Victorias Screens vorbereiten (Button-Klicks). Nur einmal aufrufen,
+  // sonst würde ein Klick mehrfach zählen.
+  showEggScreen();
+  showPetScreen();
+
+  // Kein Tier oder noch ein Ei → Ei-Screen, sonst Haustier-Screen.
+  if (creature === null || creature.stage === "Egg") {
+    showScreen("egg");
+  } else {
+    showScreen("pet");
+  }
+  if (creature !== null) {
+    updatePetScreen(creature, coins);
+  }
+
+  // Spieluhr starten: 1 Tick pro Sekunde
+  setInterval(tick, 1000);
+}
+
+startGame();
