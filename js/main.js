@@ -67,6 +67,32 @@ function tick() {
   updatePetScreen(creature, coins);
 }
 
+// DH8: Übersetzt das gespeicherte Ergebnis ("Win", "Loss", "Draw") für die Anzeige.
+// Gespeichert bleibt immer der englische Wert.
+function formatResult(result) {
+  const resultNames = { Win: "Sieg", Loss: "Niederlage", Draw: "Unentschieden" };
+  return resultNames[result];
+}
+
+// DH6–DH8, NFR2.1: Zeigt die 20 neuesten Kämpfe an, den neuesten zuerst.
+// Eine Zeile sieht so aus: "Grimmzahn – 6.10.2026, 18:30:00 – Sieg"
+function showHistory() {
+  const battles = loadRecentBattles(20);
+  const list = document.getElementById("history-list");
+
+  list.textContent = "";   // alte Zeilen entfernen
+  for (const battle of battles) {
+    const line = document.createElement("li");
+    const endedAt = new Date(battle.endedAt).toLocaleString("de-AT");
+    line.textContent = battle.opponent + " – " + endedAt + " – " + formatResult(battle.result);
+    list.appendChild(line);
+  }
+
+  // Ohne Kämpfe: Hinweis statt leerer Liste
+  document.getElementById("history-empty").hidden = battles.length > 0;
+  showScreen("history");
+}
+
 // FR2.1, DH11: Zuerst alles laden, erst danach einen Screen anzeigen.
 function startGame() {
   creature = loadCreature();
@@ -76,6 +102,13 @@ function startGame() {
   // sonst würde ein Klick mehrfach zählen.
   showEggScreen();
   showPetScreen();
+
+  // DH6–DH8: Kampf-Historie öffnen und wieder zurück zum Haustier-Screen
+  document.getElementById("button-history").addEventListener("click", showHistory);
+  document.getElementById("history-back-button").addEventListener("click", function () {
+    showScreen("pet");
+    updatePetScreen(creature, coins);
+  });
 
   // Kein Tier oder noch ein Ei → Ei-Screen, sonst Haustier-Screen.
   if (creature === null || creature.stage === "Egg") {
