@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!-- Owner: Erol – automatische Tests (PROJEKTPLAN.md, Abschnitt 10). Einfach im Browser öffnen. -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>HatchHeroes – Tests</title>
+</head>
+<body>
+  <h1>HatchHeroes – Tests</h1>
+  <p id="summary">Tests laufen …</p>
+  <ul id="results"></ul>
+
+  <!-- Nur die Logik-Dateien laden, keine Screens und kein main.js -->
+  <script src="../js/storage.js"></script>
+  <script src="../js/pet.js"></script>
+  <script src="../js/evolution.js"></script>
+  <script src="../js/battle.js"></script>
+
+  <script>
+    // Tests speichern unter "test_...", damit der echte Spielstand ("hh_...") unberührt bleibt.
+    storagePrefix = "test_";
+
+    let passed = 0;
+    let failed = 0;
+
+    // Schreibt eine Zeile in die Ergebnisliste.
+    function showResult(ok, text) {
+      const line = document.createElement("li");
+      line.textContent = (ok ? "✔ " : "✘ ") + text;
+      line.style.color = ok ? "green" : "red";
+      document.getElementById("results").appendChild(line);
+    }
+
+    // Vergleicht actual (was die Funktion liefert) mit expected (was herauskommen soll).
+    // Beide werden zuerst in Text umgewandelt, damit auch Objekte und Listen verglichen werden können.
+    function check(name, actual, expected) {
+      const actualText = String(JSON.stringify(actual));
+      const expectedText = String(JSON.stringify(expected));
+
+      if (actualText === expectedText) {
+        passed = passed + 1;
+        showResult(true, name);
+      } else {
+        failed = failed + 1;
+        showResult(false, name + " – erwartet: " + expectedText + ", bekommen: " + actualText);
+      }
+    }
+
+    // Wenn eine Testdatei abstürzt, wird der Fehler hier angezeigt statt nur in der Konsole.
+    window.addEventListener("error", function (event) {
+      failed = failed + 1;
+      const file = event.filename.split("/").pop();
+      showResult(false, "Fehler in " + file + ", Zeile " + event.lineno + ": " + event.message);
+    });
+  </script>
+
+  <script src="test-pet.js"></script>
+  <script src="test-evolution.js"></script>
+  <script src="test-battle.js"></script>
+
+  <script>
+    // Zusammenfassung oben auf der Seite
+    const summary = document.getElementById("summary");
+    if (passed + failed === 0) {
+      summary.textContent = "Noch keine Tests vorhanden.";
+    } else {
+      summary.textContent = passed + " von " + (passed + failed) + " Tests bestanden.";
+      summary.style.color = failed === 0 ? "green" : "red";
+    }
+  </script>
+</body>
+</html>

@@ -183,7 +183,9 @@ Gruppe6-HatchHeroes/
 ├── README.md             E   Wie starte ich das Spiel und die Tests
 ├── PROJEKTPLAN.md        E
 ├── HUE1_HatchHeroes.pdf
-└── Algorithm.pdf
+├── Algorithm.pdf
+├── Data HatchHeroes.docx           Abgabe Übung 2
+└── Care Actionen HatchHeroes.docx  Ideen für Pflege-Minispiele (siehe Abschnitt 11, Punkt 7)
 ```
 
 **Warum Logik und Anzeige getrennt sind** (z. B. `pet.js` und `petScreen.js`): Die Logik-Dateien enthalten nur Rechnungen. Sie greifen weder auf HTML-Elemente noch auf den Speicher zu. Deshalb lädt `tests.html` sie direkt und prüft sie, ohne dass jemand klicken muss.
@@ -207,6 +209,11 @@ creature = {
   evolutionProgress: 0         // Sekunden, die die Happiness-Bedingung schon erfüllt ist (DH4)
 }
 ```
+
+### Gemeinsamer Spielstand (in `main.js`)
+- `let creature` enthält das aktuelle Tier. Der Wert ist `null`, solange es noch keines gibt.
+- `let coins` enthält die aktuellen Münzen.
+- Alle Dateien dürfen diese zwei Variablen lesen und ändern. Wer etwas ändert, speichert danach mit `saveCreature()` bzw. `saveCoins()`.
 
 ### Funktionen
 Jede Datei verwendet nur Funktionen, die hier stehen.
@@ -416,3 +423,4 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 | 4 | Bei der LV-Leitung nachfragen, ob `localStorage` als „Datenbank“ im Sinne der HÜ1 zählt | Erol | so bald wie möglich |
 | 5 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 |
 | 6 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend |
+| 7 | Victorias `Care Actionen HatchHeroes.docx` (Ballspiel, Streicheln, Waschen als Minispiel, Shop) widerspricht der HÜ1. Dort ist Happiness der Durchschnitt der 4 Bedürfnisse, es gibt keinen Shop und keine Münzen fürs Spielen, und NFR1.1 erlaubt max. 2 Klicks. **Entscheidung:** Der Prototyp verwendet 4 einfache Buttons. Die Minispiele kommen danach als Erweiterung und wirken auf die Bedürfnisse (z. B. Ball → Entertainment), nicht direkt auf die Happiness. | Victoria + Erol | nach dem Prototyp |

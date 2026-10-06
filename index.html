@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!-- Owner: Erol – Änderungswünsche bitte an Erol (siehe PROJEKTPLAN.md, Abschnitt 4) -->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HatchHeroes</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="battle.css">
+</head>
+<body>
+  <h1>HatchHeroes</h1>
+
+  <!-- ===== Ei-Screen (Victoria) ===== -->
+  <section id="screen-egg">
+    <h2>Dein Ei</h2>
+    <div id="egg-image">🥚</div>
+
+    <div id="egg-form">
+      <label for="egg-name-input">Name:</label>
+      <input type="text" id="egg-name-input" maxlength="20">
+      <p id="egg-name-error" hidden>Bitte gib einen Namen mit 1 bis 20 Zeichen ein.</p>
+
+      <p>Typ:</p>
+      <label><input type="radio" name="egg-type" value="Fire" checked> 🔥 Feuer</label>
+      <label><input type="radio" name="egg-type" value="Water"> 💧 Wasser</label>
+      <label><input type="radio" name="egg-type" value="Earth"> 🪨 Erde</label>
+      <label><input type="radio" name="egg-type" value="Wind"> 🌪️ Wind</label>
+
+      <button id="egg-start-button">Ei ausbrüten</button>
+    </div>
+
+    <p id="egg-countdown-box" hidden>Schlüpft in <span id="egg-countdown">60</span> Sekunden …</p>
+  </section>
+
+  <!-- ===== Haustier-Screen (Victoria) ===== -->
+  <section id="screen-pet">
+    <h2><span id="pet-name">Name</span></h2>
+    <p>
+      Typ: <span id="pet-type">–</span> ·
+      Stadium: <span id="pet-stage">–</span> ·
+      Münzen: <span id="pet-coins">0</span>
+    </p>
+
+    <div id="pet-creature">🐣</div>
+
+    <p>Happiness: <span id="pet-happiness">0</span> / 100</p>
+    <p>Evolutions-Fortschritt: <span id="pet-evolution-progress">0</span> s</p>
+
+    <div id="pet-needs">
+      <p>Fullness <progress id="bar-fullness" max="100" value="0"></progress> <span id="value-fullness">0</span></p>
+      <p>Cleanliness <progress id="bar-cleanliness" max="100" value="0"></progress> <span id="value-cleanliness">0</span></p>
+      <p>Entertainment <progress id="bar-entertainment" max="100" value="0"></progress> <span id="value-entertainment">0</span></p>
+      <p>Rest <progress id="bar-rest" max="100" value="0"></progress> <span id="value-rest">0</span></p>
+    </div>
+
+    <div id="pet-actions">
+      <button id="button-feed">🍖 Füttern</button>
+      <button id="button-wash">🧽 Waschen</button>
+      <button id="button-play">⚽ Spielen</button>
+      <button id="button-sleep">💤 Schlafen</button>
+    </div>
+
+    <div id="pet-menu">
+      <button id="button-battle" hidden>⚔️ Kämpfen</button>
+      <button id="button-history">📜 Kampf-Historie</button>
+    </div>
+  </section>
+
+  <!-- ===== Kampf-Screen (Jan) – Platzhalter, wird in Phase 2 ausgebaut ===== -->
+  <section id="screen-battle">
+    <h2>Kampf</h2>
+    <p>Kommt in Phase 2.</p>
+    <button id="battle-back-button">Zurück</button>
+  </section>
+
+  <!-- ===== Historie-Screen (Erol) – Platzhalter, wird in Phase 2 ausgebaut ===== -->
+  <section id="screen-history">
+    <h2>Kampf-Historie</h2>
+    <ol id="history-list"></ol>
+    <button id="history-back-button">Zurück</button>
+  </section>
+
+  <!-- Reihenfolge: zuerst Logik, dann Anzeige, main.js immer als letztes -->
+  <script src="js/storage.js"></script>
+  <script src="js/pet.js"></script>
+  <script src="js/evolution.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/petScreen.js"></script>
+  <script src="js/battleScreen.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
