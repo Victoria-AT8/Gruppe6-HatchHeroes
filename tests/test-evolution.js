@@ -5,13 +5,86 @@
 // Jeder Testblock steht in einer eigenen Funktion. So gelten die Variablen nur darin
 // und stören nicht die Testdateien von Victoria und Jan, die auf derselben Seite laufen.
 
-// TODO Erol – Happiness und Evolution:
-// - Happiness (80, 70, 65, 90) → 76
-// - Happiness (70, 70, 71, 71) → 71
-// - Ei nach 59 × updateEvolution → noch "Egg", nach 60 → "Baby"
-// - Baby mit H = 70: nach 299 s noch "Baby", nach 300 s "First Evolution", Timer wieder 0
-// - Baby mit H = 70 für 200 s, dann H = 69 → Timer 0
-// - First Evolution mit H = 80 für 600 s → "Second Evolution"
+// ===== Happiness und Evolution (evolution.js) =====
+
+// Erstellt ein Tier mit dem angegebenen Stadium. Alle 4 Bedürfnisse bekommen den Wert need,
+// dann ist die Happiness genau need.
+function makeEvolutionCreature(stage, need) {
+  return {
+    name: "Testi",
+    type: "Water",
+    stage: stage,
+    needs: { fullness: need, cleanliness: need, entertainment: need, rest: need },
+    eggCountdown: 60,
+    evolutionProgress: 0
+  };
+}
+
+// Ruft updateEvolution() seconds-mal auf, also lässt seconds Sekunden vergehen.
+function passSeconds(creature, seconds) {
+  for (let i = 0; i < seconds; i++) {
+    updateEvolution(creature);
+  }
+}
+
+// FR2.2: Happiness = round((F + C + E + R) / 4)
+function testHappiness() {
+  check("Happiness (80, 70, 65, 90) → 76",
+    calcHappiness({ fullness: 80, cleanliness: 70, entertainment: 65, rest: 90 }), 76);
+  check("Happiness (70, 70, 71, 71) → 70.5 → 71",
+    calcHappiness({ fullness: 70, cleanliness: 70, entertainment: 71, rest: 71 }), 71);
+  check("Happiness (0, 0, 0, 0) → 0",
+    calcHappiness({ fullness: 0, cleanliness: 0, entertainment: 0, rest: 0 }), 0);
+  check("Happiness (100, 100, 100, 100) → 100",
+    calcHappiness({ fullness: 100, cleanliness: 100, entertainment: 100, rest: 100 }), 100);
+}
+
+// FR2.2, DH3, DH4: Egg → Baby → First Evolution → Second Evolution
+function testEvolution() {
+  // Egg → Baby nach 60 Sekunden
+  const egg = makeEvolutionCreature("Egg", 50);
+  passSeconds(egg, 59);
+  check("Ei nach 59 s → noch Egg", egg.stage, "Egg");
+  check("Ei nach 59 s → Countdown 1", egg.eggCountdown, 1);
+  check("Ei: 60. Sekunde gibt true zurück (Stadium geändert)", updateEvolution(egg), true);
+  check("Ei nach 60 s → Baby", egg.stage, "Baby");
+
+  // Baby → First Evolution nach 300 s mit H = 70
+  const baby = makeEvolutionCreature("Baby", 70);
+  passSeconds(baby, 299);
+  check("Baby mit H = 70 nach 299 s → noch Baby", baby.stage, "Baby");
+  check("Baby mit H = 70 nach 299 s → Timer 299", baby.evolutionProgress, 299);
+  check("Baby: 300. Sekunde gibt true zurück", updateEvolution(baby), true);
+  check("Baby mit H = 70 nach 300 s → First Evolution", baby.stage, "First Evolution");
+  check("Nach der Evolution → Timer wieder 0", baby.evolutionProgress, 0);
+
+  // Timer springt auf 0, wenn H unter die Schwelle fällt
+  const sadBaby = makeEvolutionCreature("Baby", 70);
+  passSeconds(sadBaby, 200);
+  check("Baby mit H = 70 nach 200 s → Timer 200", sadBaby.evolutionProgress, 200);
+  sadBaby.needs.rest = 66;   // (70 + 70 + 70 + 66) / 4 = 69
+  updateEvolution(sadBaby);
+  check("Danach H = 69 → Timer 0", sadBaby.evolutionProgress, 0);
+  check("Danach H = 69 → noch Baby", sadBaby.stage, "Baby");
+
+  // First Evolution → Second Evolution nach 600 s mit H = 80
+  const first = makeEvolutionCreature("First Evolution", 80);
+  passSeconds(first, 599);
+  check("First Evolution mit H = 80 nach 599 s → noch First Evolution", first.stage, "First Evolution");
+  passSeconds(first, 1);
+  check("First Evolution mit H = 80 nach 600 s → Second Evolution", first.stage, "Second Evolution");
+
+  // First Evolution braucht H ≥ 80: Mit H = 79 zählt der Timer nicht
+  const almost = makeEvolutionCreature("First Evolution", 79);
+  passSeconds(almost, 600);
+  check("First Evolution mit H = 79 nach 600 s → noch First Evolution", almost.stage, "First Evolution");
+  check("First Evolution mit H = 79 → Timer 0", almost.evolutionProgress, 0);
+
+  // Second Evolution ist das letzte Stadium
+  const last = makeEvolutionCreature("Second Evolution", 100);
+  check("Second Evolution: updateEvolution gibt false zurück", updateEvolution(last), false);
+  check("Second Evolution bleibt Second Evolution", last.stage, "Second Evolution");
+}
 
 
 // ===== Speichern (storage.js) =====
@@ -110,5 +183,7 @@ function testManyBattles() {
 
 
 // ===== Alle Tests dieser Datei starten =====
+testHappiness();
+testEvolution();
 testStorage();
 testManyBattles();
