@@ -1,82 +1,203 @@
-/* Owner: Victoria
-   Allgemeines Design + Ei- und Haustier-Screen (siehe PROJEKTPLAN.md, Abschnitt 4) */
+﻿/* Owner: Victoria – Design für Ei und Haustier (FR1.1, FR1.2, NFR1.1). */
 
-/* FR1.1: Versteckte Screens, Fehlermeldung und Countdown bleiben ausgeblendet. */
+/* FR1.1, FR3.1: hidden hat Vorrang vor allen Layout-Regeln. */
 [hidden] { display: none !important; }
 
 * { box-sizing: border-box; }
+:root {
+  --accent: #6945b5;
+  --accent-dark: #51328e;
+  --tint: #f1eaff;
+  --glow: #ded0f8;
+  --ink: #29263c;
+  --muted: #686479;
+}
 body {
   margin: 0;
-  padding: 24px 16px;
-  background: #f0f7f4;
-  color: #243b32;
-  font-family: Arial, sans-serif;
+  padding: 28px 18px 48px;
+  color: var(--ink);
+  background: radial-gradient(ellipse at top left, #e7e1ff, transparent 55%),
+              radial-gradient(ellipse at bottom right, #dff3ed, transparent 55%), #f7f6fb;
+  font-family: "Segoe UI", Arial, sans-serif;
   line-height: 1.5;
+  min-height: 100vh;
 }
-h1 { text-align: center; }
+body > h1 {
+  margin: 0 0 24px;
+  text-align: center;
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: -1.5px;
+  color: #443270;
+}
 section {
-  max-width: 620px;
-  margin: 24px auto;
-  padding: 24px;
-  background: white;
-  border: 1px solid #c5dacf;
-  border-radius: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #e5e1ee;
+  border-radius: 24px;
+  box-shadow: 0 16px 48px #30204c0d;
 }
-h2 { margin-top: 0; }
+h2 { margin: 0 0 14px; font-size: 28px; letter-spacing: -0.6px; }
 button, input { font: inherit; }
 button {
-  min-height: 44px;
-  padding: 10px 16px;
-  border: 1px solid #27664b;
-  border-radius: 8px;
-  background: #27664b;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--accent);
   color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms, transform 160ms;
+}
+button:hover { background: var(--accent-dark); transform: translateY(-2px); }
+button:active { transform: translateY(0); }
+button:focus-visible, input:focus-visible {
+  outline: 3px solid #a86100;
+  outline-offset: 4px;
+}
+
+/* FR1.1: Vier Typen, vier Farbwelten; die Spielwerte bleiben unverändert. */
+[data-type="Fire"] { --accent: #b64322; --accent-dark: #923219; --tint: #fff1e8; --glow: #ffd8bb; }
+[data-type="Water"] { --accent: #176b9b; --accent-dark: #105277; --tint: #eaf6ff; --glow: #bce3fa; }
+[data-type="Earth"] { --accent: #397247; --accent-dark: #285535; --tint: #eff7e9; --glow: #d2e7bd; }
+[data-type="Wind"] { --accent: #7350ad; --accent-dark: #57398a; --tint: #f4eeff; --glow: #dfd0fa; }
+#screen-egg, #screen-pet { border-top: 5px solid var(--accent); }
+#screen-egg h2 { text-align: center; }
+#egg-name-input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: #faf9fc;
+  border: 1px solid #c9c3d6;
+  border-radius: 10px;
+}
+#egg-name-input[aria-invalid="true"] { border-color: #b42f32; }
+#egg-form > label:first-child, #egg-form > p { font-weight: 600; }
+#egg-form label:has(input[type="radio"]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 5px 8px 0;
+  padding: 10px 12px;
+  border: 1px solid #ded9e7;
+  border-radius: 10px;
   cursor: pointer;
 }
-button:hover { background: #1d4c38; }
-button:focus-visible, input:focus-visible {
-  outline: 3px solid #bf7300;
-  outline-offset: 3px;
+#egg-form label:has(input:checked) {
+  color: var(--accent-dark);
+  background: var(--tint);
+  border-color: var(--accent);
 }
-#egg-name-input {
-  max-width: 100%;
-  padding: 8px;
-  border: 1px solid #637c70;
-  border-radius: 6px;
-}
-#egg-form label { display: inline-block; margin: 6px; }
-#egg-start-button { display: block; margin-top: 20px; }
-#egg-name-error { color: #a32020; }
-#egg-countdown-box { text-align: center; font-weight: bold; }
-
-/* FR1.1: Ein kleines Wippen macht Ei und Tier lebendig. */
-#egg-image, #pet-creature {
+input[type="radio"] { accent-color: var(--accent); }
+#egg-start-button { display: block; width: 100%; margin-top: 18px; }
+#egg-name-error { color: #a32020; font-size: 14px; }
+#egg-countdown-box {
+  margin: 22px 0 0;
+  padding: 18px;
   text-align: center;
-  font-size: 88px;
-  margin: 20px 0;
-  animation: pet-bounce 2s ease-in-out infinite;
+  background: var(--tint);
+  border-radius: 14px;
 }
-@keyframes pet-bounce {
+#egg-countdown { font-size: 24px; font-weight: 700; color: var(--accent-dark); }
+
+/* FR1.1: Ei und Tier stehen auf einer Bühne in ihrer Typfarbe. */
+#egg-image, #pet-creature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 210px;
+  margin: 18px 0 24px;
+  border: 1px solid var(--glow);
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 45%, white 0%, var(--tint) 65%);
+  font-size: 88px;
+  line-height: 1;
+}
+#egg-image::after, #pet-creature::after {
+  content: "";
+  position: absolute;
+  bottom: 26px;
+  width: 100px;
+  height: 12px;
+  background: var(--glow);
+  border-radius: 50%;
+}
+#egg-image { animation: egg-rock 3s ease-in-out infinite; }
+#pet-creature { animation: pet-breathe 3s ease-in-out infinite; }
+#screen-pet[data-stage="Baby"] #pet-creature { font-size: 72px; }
+#screen-pet[data-stage="First Evolution"] #pet-creature { font-size: 92px; }
+#screen-pet[data-stage="Second Evolution"] #pet-creature {
+  font-size: 108px;
+  border: 2px solid var(--accent);
+  box-shadow: inset 0 0 28px var(--glow);
+}
+@keyframes egg-rock {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+@keyframes pet-breathe {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-4px); }
+}
+#screen-pet > p { color: var(--muted); font-size: 14px; }
+#pet-type, #pet-stage, #pet-coins {
+  display: inline-block;
+  padding: 3px 8px;
+  margin: 3px 0;
+  background: var(--tint);
+  color: var(--accent-dark);
+  border-radius: 8px;
+  font-weight: 600;
+}
+#pet-happiness { color: var(--accent-dark); font-size: 22px; font-weight: 700; }
+#pet-evolution-progress { color: var(--ink); font-weight: 600; }
+
+/* FR1.2, NFR1.1: Werte und Pflege ohne zusätzliche Menüs erreichbar. */
+#pet-needs { margin: 22px 0; padding: 14px 18px; background: #f8f7fb; border-radius: 16px; }
+#pet-needs p {
+  display: grid;
+  grid-template-columns: 125px minmax(0, 1fr) 32px;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+}
+#pet-needs span { text-align: right; font-weight: 600; }
+#pet-needs progress {
+  width: 100%;
+  height: 12px;
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #e6e1ed;
+  accent-color: var(--accent);
+}
+#pet-needs progress::-webkit-progress-bar { background: #e6e1ed; border-radius: 20px; }
+#pet-needs progress::-webkit-progress-value { background: var(--accent); border-radius: 20px; }
+#pet-needs progress::-moz-progress-bar { background: var(--accent); border-radius: 20px; }
+#pet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#pet-actions button { background: var(--tint); color: var(--accent-dark); border-color: var(--glow); }
+#pet-actions button:hover { background: var(--glow); }
+#pet-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #eae6f0; }
+#button-history { background: #f5f3f9; color: #565064; border-color: #e2dce9; }
+#button-history:hover { background: #eae5f3; }
+@media (max-width: 440px) {
+  body { padding: 18px 12px 32px; }
+  section { padding: 20px 16px; border-radius: 18px; }
+  #egg-form label:has(input[type="radio"]) { width: calc(50% - 8px); }
+  #pet-needs { padding: 10px 12px; }
+  #pet-needs p { grid-template-columns: 1fr 32px; gap: 6px; }
+  #pet-needs progress { grid-row: 2; grid-column: 1 / 3; }
+  #pet-actions button { padding: 12px 8px; }
+  #pet-menu button { flex: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   #egg-image, #pet-creature { animation: none; }
-}
-
-/* FR1.2, NFR1.1: Alle Bedürfnisse und vier Aktionen sind direkt erreichbar. */
-#pet-needs p {
-  display: grid;
-  grid-template-columns: 125px 1fr 32px;
-  gap: 8px;
-  align-items: center;
-}
-progress { width: 100%; height: 20px; accent-color: #27664b; }
-#pet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-#pet-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-@media (max-width: 400px) {
-  section { padding: 16px; }
-  #pet-needs p { grid-template-columns: 1fr 32px; }
-  #pet-needs progress { grid-row: 2; grid-column: 1 / 3; }
-  #pet-actions { grid-template-columns: 1fr; }
+  button { transition: none; }
+  button:hover { transform: none; }
 }

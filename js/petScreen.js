@@ -12,6 +12,15 @@ function showEggScreen() {
   form.hidden = creature !== null;
   countdownBox.hidden = creature === null;
 
+  const eggScreen = document.getElementById("screen-egg");
+  eggScreen.dataset.type = creature === null ? "Fire" : creature.type;
+  // FR1.1: Die Vorschau übernimmt die Farbe des gewählten Typs.
+  for (const radio of document.querySelectorAll('input[name="egg-type"]')) {
+    radio.addEventListener("change", function () {
+      eggScreen.dataset.type = radio.value;
+    });
+  }
+
   // FR1.1: Ein gültiger Name und der gewählte Typ starten das Ei.
   document.getElementById("egg-start-button").addEventListener("click", function () {
     if (creature !== null) {
@@ -43,6 +52,12 @@ function showEggScreen() {
 // FR1.2, NFR1.1: Bereitet die vier Pflege-Buttons für jeweils einen Klick vor.
 // Bei einem Klick: careAction(), dann saveCreature(), dann updatePetScreen().
 function showPetScreen() {
+  // FR3.1: Jan übernimmt den Kampf und den Screen-Wechsel.
+  document.getElementById("button-battle").addEventListener("click", function () {
+    if (creature !== null && creature.stage === "Second Evolution") {
+      showBattleScreen(creature);
+    }
+  });
   for (const action of ["feed", "wash", "play", "sleep"]) {
     // FR1.2, DH9: Pflege sofort speichern und die Balken aktualisieren.
     document.getElementById("button-" + action).addEventListener("click", function () {
@@ -60,6 +75,11 @@ function showPetScreen() {
 // Name, Typ, Stadium, Münzen, 4 Balken, Happiness, Evolutions-Fortschritt.
 // Der Kampf-Button ist nur ab "Second Evolution" sichtbar.
 function updatePetScreen(creature, coins) {
+  // FR1.1: CSS verwendet Typ und Stadium für die passende Darstellung.
+  document.getElementById("screen-egg").dataset.type = creature.type;
+  const petScreen = document.getElementById("screen-pet");
+  petScreen.dataset.type = creature.type;
+  petScreen.dataset.stage = creature.stage;
   document.getElementById("egg-countdown").textContent = creature.eggCountdown;
   document.getElementById("pet-name").textContent = creature.name;
   const typeNames = { Fire: "Feuer", Water: "Wasser", Earth: "Erde", Wind: "Wind" };
@@ -74,13 +94,17 @@ function updatePetScreen(creature, coins) {
     document.getElementById("bar-" + need).setAttribute("aria-label", need);
     document.getElementById("value-" + need).textContent = creature.needs[need];
   }
-  const stageImages = {
-    Egg: "🥚",
-    Baby: "🐣",
-    "First Evolution": "🐥",
-    "Second Evolution": "🐓"
+  // FR1.1: Jede Tierfamilie wächst vom Baby bis zur letzten Evolution.
+  const typeImages = {
+    Fire: { Baby: "🐣", "First Evolution": "🐦", "Second Evolution": "🐦‍🔥" },
+    Water: { Baby: "🐟", "First Evolution": "🐬", "Second Evolution": "🐋" },
+    Earth: { Baby: "🐱", "First Evolution": "🐆", "Second Evolution": "🦁" },
+    Wind: { Baby: "🐛", "First Evolution": "🦋", "Second Evolution": "🦅" }
   };
-  document.getElementById("pet-creature").textContent = stageImages[creature.stage];
-  // FR3.1: Der Kampf-Button erscheint erst im letzten Stadium (Ablauf folgt in Phase 2).
+  const image = document.getElementById("pet-creature");
+  image.textContent = creature.stage === "Egg" ? "🥚" : typeImages[creature.type][creature.stage];
+  image.setAttribute("role", "img");
+  image.setAttribute("aria-label", typeNames[creature.type] + "-Tier, " + creature.stage);
+  // FR3.1: Der Kampf-Button erscheint erst im letzten Stadium.
   document.getElementById("button-battle").hidden = creature.stage !== "Second Evolution";
 }
