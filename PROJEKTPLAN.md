@@ -39,6 +39,9 @@ Stand: 06.10.2026
 | DH8 | Ergebnis ist `Win`, `Loss` oder `Draw`. | Erol |
 | **neu: DH13** | „The system shall store the creature's type as one of the following four values: Fire, Water, Earth, Wind.“ | Erol |
 | FR2.1, FR3.2, DH-Abschnitt | „database“ → „persistent browser storage (localStorage)“ | Erol |
+| FR2.1, DH11 | Der Typ wird mitgespeichert bzw. nach dem Neustart wiederhergestellt. | Erol |
+
+> **Fertige Texte:** Alle Änderungen stehen als englische Requirement-Texte (alte und neue Fassung) in `HUE1_Aenderungen.md`.
 
 > Die Quelldatei der HÜ1 ist `Projekt HatchHeroes_HÜ1_Group6.odt`. Änderungen also dort machen und `HUE1_HatchHeroes.pdf` danach neu exportieren. `Data HatchHeroes.docx` ist unsere Abgabe aus Übung 2 und hat mit der HÜ1 nichts zu tun.
 
@@ -182,6 +185,7 @@ Gruppe6-HatchHeroes/
 │   └── test-battle.js    J   inkl. NFR3.1-Messung
 ├── README.md             E   Wie starte ich das Spiel und die Tests
 ├── PROJEKTPLAN.md        E
+├── HUE1_Aenderungen.md   E   Fertige Texte für die HÜ1-Änderungen (Abschnitt 1)
 ├── HUE1_HatchHeroes.pdf
 ├── Algorithm.pdf
 ├── Data HatchHeroes.docx           Abgabe Übung 2
