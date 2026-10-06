@@ -23,8 +23,9 @@ Stand: 06.10.2026
 | Schadensformel | `round(20 × (0.5 + H/200) × (1 − D/200))` | Typ-Boni +15 % und +20 %, danach Attack − Defense | **Wie in Algorithm.pdf.** Die Happiness spielt beim Schaden *keine* Rolle. |
 | Gegner-Verhalten | Feste Regeln (bei > 30 HP Attack, sonst Defend) | – | **Zufällig** aus seinen 4 Attacken |
 | Beide fallen gleichzeitig auf 0 HP | Nur Win oder Loss | Unentschieden möglich | **Neues Ergebnis `Draw`** |
-| Typ des eigenen Tiers | – | Tiere haben Typen | **Der Spieler wählt den Typ**, wenn er das Ei benennt (Feuer, Wasser oder Pflanze). |
-| Effektivitätsbonus | – | Text: nur wenn Tier- und Attacken-Typ gleich sind. Code: immer | **Wir folgen dem Text:** Die +20 % gibt es nur, wenn auch die +15 % gelten. ⚠️ *Bitte im Team bestätigen.* |
+| Typ des eigenen Tiers | – | Tiere haben Typen | **Der Spieler wählt den Typ**, wenn er das Ei benennt: Feuer, Wasser, Erde oder Wind. |
+| Typen | – | Beispiel Feuer/Wasser/Pflanze | **Unsere 4 Typen: Feuer, Wasser, Erde, Wind.** Wer gegen wen stark ist, steht in Abschnitt 2.5. |
+| Effektivitätsbonus | – | Text: nur wenn Tier- und Attacken-Typ gleich sind. Code: immer | **Entschieden: Der Text gilt.** Die +20 % gibt es nur, wenn auch die +15 % gelten. |
 | Speicherort | „database“ | – | **`localStorage`** (siehe Abschnitt 3) |
 
 ### Was in der HÜ1 angepasst werden muss
@@ -36,10 +37,10 @@ Stand: 06.10.2026
 | FR3.2 | Schaden aus Attacke, Typ-Boni und Defense statt Happiness. Der Gegner wählt zufällig. | Jan |
 | „Battle damage“, „Defend action“, „Opponent-action“, „Battle termination“ | Durch Abschnitt 2.5 dieses Plans ersetzen | Jan |
 | DH8 | Ergebnis ist `Win`, `Loss` oder `Draw`. | Erol |
-| **neu: DH13** | „The system shall store the creature's type (Fire, Water, Plant).“ | Erol |
+| **neu: DH13** | „The system shall store the creature's type as one of the following four values: Fire, Water, Earth, Wind.“ | Erol |
 | FR2.1, FR3.2, DH-Abschnitt | „database“ → „persistent browser storage (localStorage)“ | Erol |
 
-> Die Quelldatei der HÜ1 (`Data HatchHeroes.docx`) wurde aus dem Repo gelöscht. Änderungen also in der Quelldatei machen und das PDF danach neu exportieren.
+> Die Quelldatei der HÜ1 ist `Projekt HatchHeroes_HÜ1_Group6.odt`. Änderungen also dort machen und `HUE1_HatchHeroes.pdf` danach neu exportieren. `Data HatchHeroes.docx` ist unsere Abgabe aus Übung 2 und hat mit der HÜ1 nichts zu tun.
 
 ---
 
@@ -79,7 +80,20 @@ H = round((F + C + E + R) / 4)
 
 ### 2.5 Kampf
 - **Voraussetzung:** Das Tier ist im Stadium Second Evolution. Vorher ist der Kampf-Button ausgeblendet.
-- **Typen:** Feuer > Pflanze > Wasser > Feuer. Zusätzlich gibt es Attacken vom Typ „Normal“, die zu keinem Tier passen.
+- **Typen:** Es gibt Feuer, Wasser, Erde und Wind. Im Code heißen sie `"Fire"`, `"Water"`, `"Earth"` und `"Wind"`.
+
+  | Typ | stark gegen | schwach gegen | neutral zu |
+  |---|---|---|---|
+  | Feuer | Wind | Wasser | Erde |
+  | Wasser | Feuer | Erde | Wind |
+  | Erde | Wasser | Wind | Feuer |
+  | Wind | Erde | Feuer | Wasser |
+
+  - **Kurz:** Feuer > Wind > Erde > Wasser > Feuer, wobei „>“ „stark gegen“ heißt.
+  - **„Effektiv“** im Algorithmus bedeutet „stark gegen“. Nur das gibt einen Bonus.
+  - **„Schwach“** hat keine eigene Wirkung, also keinen Abzug. Es heißt nur, dass der Gegner gegen uns stark ist und deshalb vielleicht seinen Bonus bekommt.
+  - **Gleicher Typ gegen gleichen Typ** (z. B. Feuer gegen Feuer) gilt als neutral.
+  - Zusätzlich gibt es Attacken vom Typ „Normal“. Sie passen zu keinem Tier und bekommen nie einen Bonus.
 - **Attacke:** Jede Attacke hat Name, Typ, Angriff, Verteidigung und die Angabe, ob sie ein Konter ist. Jeder Tier-Typ und jeder Gegner hat genau 4 Attacken.
 - **Start (A):** Beide Tiere haben 100 HP. Der Gegner wird zufällig aus der Gegnerliste gezogen.
 
@@ -88,7 +102,7 @@ H = round((F + C + E + R) / 4)
 2. Ist mindestens eine der beiden Attacken ein **Konter**, endet die Runde ohne Schaden.
 3. Jede Seite berechnet die Werte für ihre eigene Attacke:
    - `p1 = 115`, wenn der Tier-Typ gleich dem Attacken-Typ ist, sonst `100`.
-   - `p2 = 120`, wenn `p1 = 115` **und** das eigene Tier effektiv gegen das gegnerische ist, sonst `100`.
+   - `p2 = 120`, wenn `p1 = 115` **und** das eigene Tier stark gegen das gegnerische ist, sonst `100`.
    - `Angriff = Math.round(attack × p1 × p2 / 10000)`
    - `Verteidigung = Math.round(defense × p1 × p2 / 10000)`
 4. Schaden berechnen:
@@ -174,19 +188,19 @@ Gruppe6-HatchHeroes/
 
 **Warum Logik und Anzeige getrennt sind** (z. B. `pet.js` und `petScreen.js`): Die Logik-Dateien enthalten nur Rechnungen. Sie greifen weder auf HTML-Elemente noch auf den Speicher zu. Deshalb lädt `tests.html` sie direkt und prüft sie, ohne dass jemand klicken muss.
 
-**`index.html`:** Diese Datei schreiben wir in Phase 0 **gemeinsam fertig**, mit allen Screens, Buttons und IDs. Danach ändert sie nur noch Erol. Wer ein neues Element braucht, sagt ihm Bescheid.
+**`index.html`:** Erol schreibt diese Datei in Phase 0 fertig, mit allen Screens, Buttons und IDs. Danach ändert sie nur noch Erol. Wer ein neues Element braucht, sagt ihm Bescheid.
 
 ---
 
 ## 5. Gemeinsame Namen
 
-Diese Namen legen wir in Phase 0 fest. Danach kann jede Person damit arbeiten, auch wenn die Dateien der anderen noch leer sind.
+Im Grundgerüst (Phase 0) steht jede dieser Funktionen schon als leere Funktion mit dem richtigen Namen. So kann jede Person sofort damit arbeiten, auch wenn die Dateien der anderen noch nicht fertig sind.
 
 ### Das Tier (ein normales JS-Objekt)
 ```js
 creature = {
   name: "Flammi",
-  type: "Fire",                // "Fire" | "Water" | "Plant"
+  type: "Fire",                // "Fire" | "Water" | "Earth" | "Wind"
   stage: "Egg",                // "Egg" | "Baby" | "First Evolution" | "Second Evolution"
   needs: { fullness: 50, cleanliness: 50, entertainment: 50, rest: 50 },
   eggCountdown: 60,            // Restsekunden bis zum Schlüpfen
@@ -208,7 +222,8 @@ Jede Datei verwendet nur Funktionen, die hier stehen.
 | `storage.js` (E) | `saveCreature(creature)`, `loadCreature()` | `loadCreature()` gibt `null` zurück, wenn noch kein Tier existiert. |
 | | `saveCoins(coins)`, `loadCoins()` | |
 | | `addBattle(battle)`, `loadRecentBattles(count)`, `countBattles()` | `battle = { opponent, endedAt, result }` |
-| `battle.js` (J) | `startBattle(creature)` | Gibt ein Kampf-Objekt mit zufälligem Gegner und 100/100 HP zurück. |
+| `battle.js` (J) | `isStrongAgainst(type, enemyType)` | `true`, wenn `type` laut Tabelle in 2.5 stark gegen `enemyType` ist |
+| | `startBattle(creature)` | Gibt ein Kampf-Objekt mit zufälligem Gegner und 100/100 HP zurück. |
 | | `chooseOpponentAttack()` | Zufallszahl 0–3 |
 | | `playRound(battle, playerAttack, opponentAttack)` | Bekommt beide Attacken-Nummern (0–3). Ändert die HP, gibt die 2 Log-Zeilen (Gegner, Spieler) zurück und setzt `battle.result` am Ende. |
 | `battleScreen.js` (J) | `showBattleScreen(creature)` | Anzeige + Ablauf. Am Ende `addBattle()` und bei Win `saveCoins()`. |
@@ -280,17 +295,47 @@ Damit setzt `git pull` die eigenen neuen Commits einfach hinter die Commits der 
 
 ## 9. Reihenfolge
 
+**Ziel: Bis morgen (07.10.2026) läuft ein Prototyp mit Ei, Pflege, Happiness, Evolution und Speichern.** Der Kampf gehört noch nicht zum Prototyp.
+
+### Phase 0 – Grundgerüst (heute, 06.10.): Erol mit Claude
+Phase 0 ist kein gemeinsames Treffen. Erol baut das Gerüst und pusht es. Erst danach fangen Victoria und Jan an.
+- Alle 14 Dateien anlegen. Jede Funktion aus Abschnitt 5 steht schon als **leere Funktion** mit dem richtigen Namen und einem Kommentar darin. So lädt `index.html` von Anfang an ohne Fehler, und alle können sofort die Funktionen der anderen aufrufen.
+- `index.html` fertig schreiben:
+  - Ei-Screen und Haustier-Screen mit allen Buttons und IDs
+  - Kampf- und Historie-Screen erst einmal als leere Platzhalter
+- `tests.html` mit der Funktion `check()` anlegen
+- Prüfen, ob `index.html` per Doppelklick startet und in `localStorage` speichert. Mindestens in Chrome, dazu in allen Browsern, die das Team benutzt.
+- **Fertig, wenn:** Das Gerüst ist auf `main` gepusht, `index.html` und `tests.html` öffnen sich ohne Fehler in der Konsole (F12), und Victoria und Jan haben Bescheid bekommen.
+
+### Phase 1 – Prototyp (heute ab Gerüst bis morgen, 07.10.)
+Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2 und 5. Wer mit einer Annahme (A) nicht einverstanden ist, meldet sich sofort in der Gruppe.
+
+| Victoria | Erol | Jan |
+|---|---|---|
+| `pet.js`: Name prüfen, Pflege-Aktionen, Bedürfnisse sinken lassen | **zuerst `storage.js`** (Tier und Münzen speichern und laden) | `battle.js`: Typtabelle, Attacken für alle 4 Typen, mind. 3 Gegner, `playRound` |
+| `petScreen.js`: Ei-Screen (Name, Typ, Countdown), Haustier-Screen (Tier, Stadium, 4 Balken, Happiness, 4 Buttons) | `evolution.js`: Happiness, Countdown, Evolution | `test-battle.js` mit den Testfällen aus 10.1 |
+| `style.css`: einfaches Design, Tier als Emoji oder Form mit CSS-Animation | `main.js`: Laden beim Start, Spieluhr, Speichern, Screen-Wechsel | – |
+| `test-pet.js` | `test-evolution.js` (inkl. Speicher-Tests) | – |
+
+**Der Prototyp ist fertig, wenn alle diese Punkte auf `main` funktionieren:**
+1. Ei benennen, Typ wählen, der Countdown läuft sichtbar, das Tier schlüpft als Baby.
+2. Die 4 Pflege-Buttons erhöhen ihre Balken. Die Balken sinken mit der Zeit.
+3. Die Happiness wird angezeigt und passt zu den Balken.
+4. Mit `SPEED = 60` entwickelt sich das Tier zu First Evolution und danach zu Second Evolution.
+5. Seite schließen und neu öffnen → Name, Typ, Bedürfnisse, Stadium und Evolutions-Fortschritt sind wieder da.
+6. `tests.html`: Alle Tests von Victoria und Erol zeigen ✔.
+
+**Wichtig für heute:**
+- Erol schreibt `storage.js` als Erstes. Die Datei ist kurz, und `main.js` braucht sie.
+- Victoria kann die Screens sofort bauen: Die leeren Funktionen aus dem Gerüst geben einfach noch nichts zurück.
+- Jans Kampf-Logik hängt nicht vom Prototyp ab. Er kann parallel arbeiten, ohne auf jemanden zu warten.
+
+### Danach
 | Phase | Victoria | Erol | Jan | Fertig, wenn … |
 |---|---|---|---|---|
-| **0 Gemeinsamer Start** (1 Treffen) | Gemeinsam: Abschnitt 1, Annahmen (A) und die Namen in Abschnitt 5 bestätigen. HÜ1 anpassen. Testrechner festlegen. `index.html` mit allen Screens schreiben. | | | Alle Dateien liegen (teils leer) auf `main`. `index.html` und `tests.html` öffnen sich. |
-| **1 Logik + Tests** | `pet.js` + Tests | `evolution.js`, **`storage.js` zuerst** (brauchen alle in Phase 2) + Tests | `battle.js` + Tests | Alle Tests in `tests.html` sind ✔. |
-| **2 Screens** | `petScreen.js`, `style.css` | `main.js`, Historie | `battleScreen.js`, `battle.css` | Komplett spielbar: Ei → Second Evolution → Kampf. Nach einem Neustart ist alles wieder da. |
-| **3 Abnahme** | Manuelle Tests FR1.x und NFR1.1 | Manuelle Tests DH, NFR2.1 auf dem Testrechner | Manuelle Tests FR3.x, NFR3.1 auf dem Testrechner | Alle Zeilen in 10.3 abgehakt |
+| **2 Kampf einbauen** | Kampf-Button ab Second Evolution, bessere Grafik, HÜ1 anpassen (FR1.1) | Münzen, Kampf-Historie, HÜ1 anpassen (DH8, DH13, „database“) | `battleScreen.js`, `battle.css`, HÜ1 anpassen (FR3.x, Kampfalgorithmen) | Komplett spielbar: Ei → Second Evolution → Kampf → Historie. Nach einem Neustart ist alles wieder da. |
+| **3 Abnahme** | Manuelle Tests FR1.x, NFR1.1 | Manuelle Tests DH, NFR2.1 auf dem Testrechner | Manuelle Tests FR3.x, NFR3.1 auf dem Testrechner | Alle Zeilen in 10.3 sind abgehakt. |
 | **4 Feinschliff + Abgabe** | Grafik, Animation | README | Balancing der Attackenwerte | Abgabe |
-
-**Abhängigkeiten:**
-- Victoria und Jan sind voneinander unabhängig.
-- Phase 2 braucht `storage.js`. Deshalb schreibt Erol diese Datei zuerst. Sie ist kurz.
 
 ---
 
@@ -319,12 +364,20 @@ Damit setzt `git pull` die eigenen neuen Commits einfach hinter die Commits der 
 - 25 Kämpfe speichern → `loadRecentBattles(20)` liefert die 20 neuesten, den neuesten zuerst
 
 **Kampf (Jan)**
-- Feuer-Tier mit *Feuerball* (Feuer, A30/V10) gegen Pflanzen-Tier mit *Rankenhieb* (Pflanze, A20/V10):
-  - Angriff Spieler **41**, Verteidigung Spieler **14**
-  - Angriff Gegner **23**, Verteidigung Gegner **12**
-  - Gegner verliert **29** (→ 71 HP), Spieler verliert **9** (→ 91 HP)
-- Rundungsfalle: Grundwert 25 mit beiden Boni → **35**, nicht 34
-- Feuer-Tier mit *Biss* (Normal, A20) gegen Pflanze → **20**, kein Bonus
+- Typtabelle prüfen:
+  - `isStrongAgainst` ist **nur** in diesen 4 Fällen `true`: Feuer→Wind, Wasser→Feuer, Erde→Wasser, Wind→Erde
+  - Die anderen 12 Kombinationen sind `false`, z. B. Wind→Feuer, Feuer→Erde, Feuer→Feuer
+- Ganze Runde: Feuer-Tier mit *Feuerball* (Feuer, A30/V10) gegen Wind-Tier mit *Windstoß* (Wind, A20/V10)
+  - Spieler: Feuer ist stark gegen Wind → +15 % und +20 % → Angriff **41**, Verteidigung **14**
+  - Gegner: Wind ist schwach gegen Feuer → nur +15 % → Angriff **23**, Verteidigung **12**
+  - Gegner verliert 41 − 12 = **29** (→ 71 HP), Spieler verliert 23 − 14 = **9** (→ 91 HP)
+- Neutrale Typen: Feuer-Tier mit *Feuerball* (A30) gegen Erde-Tier → nur +15 % → **35**
+- Gleicher Typ: Feuer-Tier mit *Feuerball* (A30) gegen Feuer-Tier → nur +15 % → **35**
+- Stark: Wasser-Tier mit Wasser-Attacke (A30) gegen Feuer-Tier → **41**
+- Kein Bonus ohne passenden Attacken-Typ, auch wenn das Tier stark ist:
+  - Feuer-Tier mit *Biss* (Normal, A20) gegen Wind → **20**
+  - Wind-Tier mit einer Feuer-Attacke (A30) gegen Erde → **30**
+- Rundungsfalle: Erde-Tier mit Erde-Attacke (A25) gegen Wasser → `25 × 115 × 120 / 10000 = 34.5` → **35**, nicht 34
 - Ist eine Attacke ein Konter → die HP beider Tiere bleiben gleich
 - Ist die Verteidigung größer als der Angriff → Schaden 0, nicht negativ
 - Hat ein Tier 5 HP und bekommt 29 Schaden → 0 HP, nicht −24
@@ -357,10 +410,9 @@ Damit setzt `git pull` die eigenen neuen Commits einfach hinter die Commits der 
 
 | # | Punkt | Wer | Bis |
 |---|---|---|---|
-| 1 | ⚠️ Effektivitätsbonus: nur bei gleichem Typ (Text) oder immer (Code)? | Jan + Team | Phase 0 |
-| 2 | Annahmen (A) bestätigen | alle | Phase 0 |
-| 3 | Testrechner festlegen (Gerät + Browser) | alle | Phase 0 |
-| 4 | Im ersten Treffen prüfen, ob `index.html` per Doppelklick in allen benutzten Browsern startet und speichert | alle | Phase 0 |
-| 5 | Bei der LV-Leitung nachfragen, ob `localStorage` als „Datenbank“ im Sinne der HÜ1 zählt | Erol | Phase 0 |
-| 6 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 |
-| 7 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend |
+| 1 | Annahmen (A) bestätigen | Victoria, Jan | vor ihrem Start heute |
+| 2 | Prüfen, ob `index.html` per Doppelklick in allen benutzten Browsern startet und speichert | Erol (Chrome), Victoria + Jan (eigener Browser beim ersten Öffnen) | heute |
+| 3 | Testrechner festlegen (Gerät + Browser) | alle | vor Phase 3 |
+| 4 | Bei der LV-Leitung nachfragen, ob `localStorage` als „Datenbank“ im Sinne der HÜ1 zählt | Erol | so bald wie möglich |
+| 5 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 |
+| 6 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend |
