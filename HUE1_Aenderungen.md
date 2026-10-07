@@ -1,8 +1,12 @@
 # HÜ1 – Änderungen
 
-**Gruppe 6 · HatchHeroes** · Owner dieser Datei: Erol · Stand: 06.10.2026
+**Gruppe 6 · HatchHeroes** · Owner dieser Datei: Erol · Stand: 07.10.2026
 
 Hier stehen alle Änderungen an der HÜ1 aus `PROJEKTPLAN.md`, Abschnitt 1, als fertige Texte. Die alte Fassung ist wörtlich aus `HUE1_HatchHeroes.pdf` übernommen. In der neuen Fassung sind geänderte Stellen **fett** markiert.
+
+**Speicherort (Stand 07.10.2026):**
+- Die „database“ der HÜ1 ist bei uns die Datei `data.json` auf dem Rechner des Spielers (siehe `PROJEKTPLAN.md`, Abschnitt 3). Vorher war hier `localStorage` geplant.
+- Überall, wo die HÜ1 „database“ schreibt, steht jetzt einheitlich **„a local JSON file (data.json) on the player's computer“**. Das betrifft FR2.1, FR3.2, *Battle termination*, DH9 und DH12.
 
 **So geht es weiter:**
 - Jede Person prüft die Abschnitte, bei denen sie als Owner steht.
@@ -44,7 +48,7 @@ Dazu im Abschnitt *Evolution algorithm → Egg → Baby*, Schritt 1:
 
 ---
 
-## 2. FR2.1 – Typ mitspeichern, localStorage statt „database“ (Owner: Erol)
+## 2. FR2.1 – Typ mitspeichern, data.json statt „database“ (Owner: Erol)
 
 **Alt:**
 > **FR2.1**
@@ -52,7 +56,7 @@ Dazu im Abschnitt *Evolution algorithm → Egg → Baby*, Schritt 1:
 
 **Neu:**
 > **FR2.1**
-> The system shall store the creature's name, **type,** needs, development stage, and evolution progress in **persistent browser storage (localStorage)** after every completed action. These values shall be restored when the game is reopened.
+> The system shall store the creature's name, **type,** needs, development stage, and evolution progress in **a local JSON file (data.json) on the player's computer** after every completed action. These values shall be restored when the game is reopened.
 
 ---
 
@@ -70,19 +74,23 @@ Dazu im Abschnitt *Evolution algorithm → Egg → Baby*, Schritt 1:
 
 ## 4. FR3.2 – Schaden ohne Happiness, zufälliger Gegner (Owner: Jan)
 
+> *Am 07.10. von Erol geändert: nur der Speicherort am Ende („a local JSON file (data.json) on the player's computer“ statt „localStorage“). Der restliche Text ist unverändert.*
+
 **Alt:**
 > **FR3.2**
 > The system shall calculate damage using the chosen action, the creature's happiness at the start of the battle, and the opponent's defence. It shall select opponent actions using predefined rules and save each battle's opponent, date, and result in the database.
 
 **Neu:**
 > **FR3.2**
-> The system shall calculate damage using **the attack and defence values of both chosen attacks and the type bonuses defined in the battle round algorithm; happiness shall not influence damage.** It shall select **each opponent attack at random from the opponent's four attacks** and save each battle's opponent, date **and time**, and result in **persistent browser storage (localStorage)**.
+> The system shall calculate damage using **the attack and defence values of both chosen attacks and the type bonuses defined in the battle round algorithm; happiness shall not influence damage.** It shall select **each opponent attack at random from the opponent's four attacks** and save each battle's opponent, date **and time**, and result in **a local JSON file (data.json) on the player's computer**.
 
 ---
 
 ## 5. Kampf-Algorithmen (Owner: Jan)
 
 Die vier alten Abschnitte *Battle damage algorithm*, *Defend action*, *Opponent-action algorithm* und *Battle termination algorithm* werden **komplett ersetzt**. Die neuen Texte entsprechen `PROJEKTPLAN.md`, Abschnitt 2.5.
+
+> *Am 07.10. von Erol geändert: nur der Speicherort in „Battle termination algorithm“ („a local JSON file (data.json) on the player's computer“ statt „localStorage“). Der restliche Text ist unverändert.*
 
 ### Alt (wird gelöscht)
 
@@ -164,7 +172,7 @@ Die vier alten Abschnitte *Battle damage algorithm*, *Defend action*, *Opponent-
 > - If only the player's creature has 0 health, the battle ends with the result Loss.
 > - Otherwise, the next round begins.
 >
-> After the battle ends, the system stores the opponent, completion date and time, and battle result in persistent browser storage (localStorage).
+> After the battle ends, the system stores the opponent, completion date and time, and battle result in a local JSON file (data.json) on the player's computer.
 > A victory increases the player's currency balance by 100 coins. A draw or a loss does not change the currency balance.
 > The completed battle is then added to the battle history. A battle that is aborted before it ends (for example by reloading the page) is not stored.
 
@@ -184,7 +192,7 @@ Die vier alten Abschnitte *Battle damage algorithm*, *Defend action*, *Opponent-
 
 ---
 
-## 7. DH9 – localStorage statt „database“ (Owner: Erol)
+## 7. DH9 – data.json statt „database“ (Owner: Erol)
 
 Der Requirement-Text bleibt gleich, nur die Verification ändert sich.
 
@@ -196,7 +204,7 @@ Der Requirement-Text bleibt gleich, nur die Verification ändert sich.
 **Neu:**
 > **DH9 – Persistence after care actions**
 > The system shall persist all creature-state values affected by a completed care action no later than 1 second after the action has completed.
-> **Verification:** Perform each care action individually and inspect **the persistent browser storage (browser developer tools → Application → Local Storage)** within one second after completion.
+> **Verification:** Perform each care action individually and inspect **the local JSON file (data.json) in a text editor** within one second after completion.
 
 ---
 
@@ -214,7 +222,7 @@ Der Requirement-Text bleibt gleich, nur die Verification ändert sich.
 
 ---
 
-## 9. DH12 – localStorage statt „database“ (Owner: Erol)
+## 9. DH12 – data.json statt „database“ (Owner: Erol)
 
 **Alt:**
 > **DH12 – Battle-history capacity**
@@ -223,8 +231,8 @@ Der Requirement-Text bleibt gleich, nur die Verification ändert sich.
 
 **Neu:**
 > **DH12 – Battle-history capacity**
-> **The persistent browser storage (localStorage)** shall support at least 10,000 completed battle-history records without deleting existing records automatically.
-> **Verification:** Populate **the storage** with 10,000 battle records and verify that all records remain accessible. **This is done by the automated test in `tests/tests.html`.**
+> **The local JSON file (data.json) on the player's computer** shall support at least 10,000 completed battle-history records without deleting existing records automatically.
+> **Verification:** Populate **the file** with 10,000 battle records and verify that all records remain accessible. **This is done by the automated test in `tests/tests.html`, which uses a separate test file (test-data.json) so that the player's data.json is not changed.**
 
 ---
 

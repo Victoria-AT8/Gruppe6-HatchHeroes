@@ -8,9 +8,9 @@ Stand: 07.10.2026
 
 ## 0. Kurzfassung
 
-- **Technik:** HTML, CSS und JavaScript. Wir verwenden kein Framework, installieren nichts und haben keinen Build-Schritt. Gestartet wird per Doppelklick auf `index.html`.
-- **Speichern:** `localStorage` des Browsers, die Daten werden dort als JSON-Text abgelegt.
-- **Umfang:** 15 Dateien für Code und Tests, dazu README und dieser Plan. Jede Datei hat genau einen Owner.
+- **Technik:** HTML, CSS und JavaScript. Wir verwenden kein Framework, installieren nichts und haben keinen Build-Schritt. Gestartet wird per Doppelklick auf `index.html` in **Chrome oder Edge** (oder einem anderen Chromium-Browser).
+- **Speichern:** in der Datei **`data.json`** im Projektordner. Man kann sie mit jedem Texteditor öffnen und lesen. Der Browser schreibt sie direkt über die *File System Access API*, ohne Server.
+- **Umfang:** 15 Dateien für Code und Tests, dazu README, dieser Plan und `.gitignore`. Jede Datei hat genau einen Owner.
 - **Git:** Alle arbeiten direkt auf `main`. Jede Person ändert nur ihre eigenen Dateien.
 
 ---
@@ -26,7 +26,7 @@ Stand: 07.10.2026
 | Typ des eigenen Tiers | – | Tiere haben Typen | **Der Spieler wählt den Typ**, wenn er das Ei benennt: Feuer, Wasser, Erde oder Wind. |
 | Typen | – | Beispiel Feuer/Wasser/Pflanze | **Unsere 4 Typen: Feuer, Wasser, Erde, Wind.** Wer gegen wen stark ist, steht in Abschnitt 2.5. |
 | Effektivitätsbonus | – | Text: nur wenn Tier- und Attacken-Typ gleich sind. Code: immer | **Entschieden: Der Text gilt.** Die +20 % gibt es nur, wenn auch die +15 % gelten. |
-| Speicherort | „database“ | – | **`localStorage`** (siehe Abschnitt 3) |
+| Speicherort | „database“ | – | **Datei `data.json`** im Projektordner (siehe Abschnitt 3). Vorgabe: Die Datenbank muss eine echte Datei sein, die man öffnen und lesen kann. `localStorage` allein reicht nicht. |
 
 ### Was in der HÜ1 angepasst werden muss
 
@@ -38,7 +38,7 @@ Stand: 07.10.2026
 | „Battle damage“, „Defend action“, „Opponent-action“, „Battle termination“ | Durch Abschnitt 2.5 dieses Plans ersetzen | Jan |
 | DH8 | Ergebnis ist `Win`, `Loss` oder `Draw`. | Erol |
 | **neu: DH13** | „The system shall store the creature's type as one of the following four values: Fire, Water, Earth, Wind.“ | Erol |
-| FR2.1, FR3.2, DH-Abschnitt | „database“ → „persistent browser storage (localStorage)“ | Erol |
+| FR2.1, FR3.2, DH9, DH12, „Battle termination“ | „database“ → „a local JSON file (data.json) on the player's computer“ | Erol |
 | FR2.1, DH11 | Der Typ wird mitgespeichert bzw. nach dem Neustart wiederhergestellt. | Erol |
 
 > **Fertige Texte:** Alle Änderungen stehen als englische Requirement-Texte (alte und neue Fassung) in `HUE1_Aenderungen.md`.
@@ -130,32 +130,41 @@ H = round((F + C + E + R) / 4)
 ## 3. Technik
 
 **HTML + CSS + JavaScript, ohne Framework**
-- **Keine Installation:** Ein Browser reicht. Zum Spielen doppelklickt man `index.html`, zum Programmieren genügt jeder Texteditor.
+- **Keine Installation:** Ein Browser reicht (Chrome, Edge oder ein anderer Chromium-Browser). Zum Spielen doppelklickt man `index.html`, zum Programmieren genügt jeder Texteditor.
 - **Leicht zu erklären:** Die JS-Dateien werden mit normalen `<script>`-Tags nacheinander geladen. Jede Funktion ist global, es gibt kein `import`/`export` (das würde über Doppelklick in Chrome auch nicht funktionieren).
 
-**Speichern mit `localStorage`**
-- `localStorage` speichert Text unter einem Namen (Schlüssel), auch nach dem Schließen des Browsers.
-- Objekte speichern wir mit `JSON.stringify`, zum Laden verwenden wir `JSON.parse`.
-- Nachprüfen lässt sich das in den DevTools (F12) unter *Application → Local Storage*. Das brauchen wir für die Verifikation von DH2, DH3, DH9 und DH10.
+**Speichern in der Datei `data.json`**
+- **Vorgabe:** Die „Datenbank“ muss eine echte Datei auf dem Rechner sein, die man öffnen und lesen kann. `localStorage` allein reicht nicht.
+- **Entscheidung (07.10.2026):** Der Browser schreibt die Datei selbst, über die *File System Access API*. Wir brauchen keinen Server und installieren nichts.
+- **Nur Chrome und Edge** (und andere Chromium-Browser) können das. Firefox und Safari zeigen beim Start den Hinweis „Bitte Chrome oder Edge verwenden“.
+- **Ordner wählen:** Der Browser darf nur in einen Ordner schreiben, den der Spieler selbst ausgewählt hat. Beim ersten Start wählt man deshalb den Projektordner. Dort legt das Spiel `data.json` an. Den Ordner merkt sich der Browser in *IndexedDB*, einer kleinen Datenbank im Browser (`localStorage` kann keine Ordner speichern).
+- **Laden:** Beim Start liest das Spiel `data.json` einmal ein. Danach liegt der Spielstand im Arbeitsspeicher, und die `load…`-Funktionen antworten sofort.
+- **Speichern:** Jede Speicherung schreibt die **ganze** Datei neu, mit `JSON.stringify` und eingerückt, damit man sie gut lesen kann.
+- **Nachprüfen:** `data.json` im Texteditor öffnen. Das brauchen wir für die Verifikation von DH2, DH3, DH9 und DH10.
 
-### Erfüllt localStorage NFR2.1? Ja.
+**(A) Klicks beim Start (DH11):** Getestet am 07.10.2026 in Helium (Chromium) auf macOS.
+- **Seite neu laden** (F5, Tab schließen und wieder öffnen): **0 Klicks**. Der Browser hat sich Ordner und Zugriff gemerkt, das Spiel startet sofort.
+- **Nach einem Neustart des Browsers:** **2 Klicks**. Der Browser merkt sich zwar den Ordner, fragt aber wieder nach dem Zugriff: „📂 Spielordner wählen“ und dann „Allow“ (auf Deutsch „Zulassen“). Eine Option, den Zugriff dauerhaft zu erlauben, gab es im Test nicht.
+- **DH11 bleibt erfüllt:** Der Spielstand ist vollständig geladen, bevor der Haustier-Screen erscheint. Vorher ist nur der Spielstand-Screen sichtbar.
+
+### Erfüllt `data.json` NFR2.1? Ja.
 
 NFR2.1 verlangt: Bei 10.000 gespeicherten Kämpfen müssen das Tier und die 20 neuesten Kämpfe in unter 2 Sekunden geladen sein.
 
-**Messung** am 06.10.2026, Chrome 154 auf macOS. Die Messseite war eine Wegwerf-Seite und liegt nicht im Repo.
+**Messung** am 07.10.2026 mit `tests/tests.html` in Helium (Chromium) auf macOS. Gemessen wird das, was beim Start passiert: Datei lesen, `JSON.parse`, Tier und die 20 neuesten Kämpfe holen.
 
-| Gespeicherte Kämpfe | Größe im localStorage | Tier + 20 neueste laden (5 Messungen) | 1 Kampf hinzufügen |
+| Gespeicherte Kämpfe | Größe von `data.json` | Datei lesen + Tier + 20 neueste (5 Messungen) | Ganze Datei schreiben (= 1 Speicherung) |
 |---|---|---|---|
-| 10.000 | 0,82 Mio. Zeichen | **0,6–1,5 ms** | 1,5 ms |
-| 30.000 | 2,5 Mio. Zeichen | 1,7–2,5 ms | 5,9 ms |
+| 10.000 | ca. 1,1 MB | **1,5–2,2 ms** | 3,4 ms |
 
 - Bei 10.000 Kämpfen ist das Laden etwa **1000-mal schneller** als die erlaubten 2000 ms.
-- **Speicherplatz:** Browser erlauben ungefähr 5 MB pro Website. 10.000 Kämpfe liegen deutlich darunter (DH12).
-- **Speicherplatz voll:** Dann wirft `localStorage.setItem` einen Fehler. Wir fangen ihn ab und zeigen eine Meldung an. Alte Kämpfe löschen wir nie automatisch (DH12).
+- Auch das Schreiben liegt weit unter der 1-Sekunden-Grenze aus DH9 und DH10.
+- **Speicherplatz:** Eine Datei hat keine 5-MB-Grenze wie `localStorage`. 10.000 Kämpfe sind etwa 1,1 MB groß (DH12).
+- **Speichern schlägt fehl** (z. B. Zugriff verloren oder Festplatte voll): Die Meldung „Speichern fehlgeschlagen“ erscheint **einmal**, nicht bei jeder Speicherung. Alte Kämpfe löschen wir nie automatisch (DH12).
 - **Noch offen:** Die endgültige Messung findet auf dem vereinbarten Testrechner statt (siehe Abschnitt 10).
 
 So muss gespeichert werden, damit es schnell bleibt:
-- Alle Kämpfe stehen als **eine** JSON-Liste unter einem einzigen Schlüssel.
+- Alle Kämpfe stehen in `data.json` als **eine** Liste `battles`.
 - Neue Kämpfe werden **hinten** angehängt.
 - Die 20 neuesten sind daher einfach die letzten 20 Einträge der Liste, umgedreht.
 
@@ -163,27 +172,29 @@ So muss gespeichert werden, damit es schnell bleibt:
 
 ## 4. Dateien
 
-**15 Dateien für Code und Tests**, dazu README und dieser Plan. V = Victoria, E = Erol, J = Jan. **Jede Datei ändert nur ihr Owner.**
+**15 Dateien für Code und Tests**, dazu README, dieser Plan und `.gitignore`. V = Victoria, E = Erol, J = Jan. **Jede Datei ändert nur ihr Owner.**
 
 ```
 Gruppe6-HatchHeroes/
-├── index.html            E   Alle 4 Screens (Ei, Haustier, Kampf, Historie) + <script>-Tags
+├── index.html            E   Alle 5 Screens (Spielstand, Ei, Haustier, Kampf, Historie) + <script>-Tags
 ├── style.css             V   Allgemeines Design + Ei- und Haustier-Screen
 ├── battle.css            J   Kampf-Screen
-├── history.css           E   Test-Leiste (Tempo, Neu starten) + Historie-Screen
+├── history.css           E   Spielstand-Screen + Test-Leiste (Tempo, Neu starten) + Historie-Screen
 ├── js/
 │   ├── pet.js            V   Logik: Name prüfen, Pflege-Aktionen, Bedürfnisse sinken
 │   ├── petScreen.js      V   Ei- und Haustier-Screen anzeigen, Button-Klicks
 │   ├── evolution.js      E   Logik: Happiness, Countdown, Evolution
-│   ├── storage.js        E   Speichern und Laden mit localStorage
+│   ├── storage.js        E   Speichern und Laden mit der Datei data.json
 │   ├── battle.js         J   Logik + Daten: Typen, Attacken, Gegner, Runde berechnen
 │   ├── battleScreen.js   J   Kampf-Screen anzeigen, Button-Klicks, Kampf-Log
-│   └── main.js           E   Start, Laden, Uhr (1 Tick pro Sekunde), Screen-Wechsel, Historie
+│   └── main.js           E   Start (data.json laden), Uhr (1 Tick pro Sekunde), Screen-Wechsel, Historie
 ├── tests/
 │   ├── tests.html        E   Öffnen → zeigt alle Testergebnisse (✔ / ✘)
 │   ├── test-pet.js       V
-│   ├── test-evolution.js E   inkl. Speicher-Tests und NFR2.1-Messung
+│   ├── test-evolution.js E   inkl. Speicher-Tests und NFR2.1-Messung (mit test-data.json)
 │   └── test-battle.js    J   inkl. NFR3.1-Messung
+├── data.json                 Spielstand. Legt das Spiel beim ersten Start an. Nicht im Repo (.gitignore)
+├── .gitignore            E   data.json, test-data.json und .DS_Store nicht hochladen
 ├── README.md             E   Wie starte ich das Spiel und die Tests
 ├── PROJEKTPLAN.md        E
 ├── HUE1_Aenderungen.md   E   Fertige Texte für die HÜ1-Änderungen (Abschnitt 1)
@@ -234,12 +245,15 @@ Jede Datei verwendet nur Funktionen, die hier stehen.
 | `storage.js` (E) | `saveCreature(creature)`, `loadCreature()` | `loadCreature()` gibt `null` zurück, wenn noch kein Tier existiert. |
 | | `saveCoins(coins)`, `loadCoins()` | |
 | | `addBattle(battle)`, `loadRecentBattles(count)`, `countBattles()` | `battle = { opponent, endedAt, result }` |
+| | `openDataFolder(askUser)` | Nur für `main.js` und `tests.html`: holt den Projektordner und lädt `data.json`. Gibt `true` zurück, wenn der Spielstand geladen ist. |
 | `battle.js` (J) | `isStrongAgainst(type, enemyType)` | `true`, wenn `type` laut Tabelle in 2.5 stark gegen `enemyType` ist |
 | | `startBattle(creature)` | Gibt ein Kampf-Objekt mit zufälligem Gegner und 100/100 HP zurück. |
 | | `chooseOpponentAttack()` | Zufallszahl 0–3 |
 | | `playRound(battle, playerAttack, opponentAttack)` | Bekommt beide Attacken-Nummern (0–3). Ändert die HP, gibt die 2 Log-Zeilen (Gegner, Spieler) zurück und setzt `battle.result` am Ende. |
 | `battleScreen.js` (J) | `showBattleScreen(creature)` | Anzeige + Ablauf. Am Ende `addBattle()` und bei Win `saveCoins()`. |
-| `main.js` (E) | `showScreen(name)` | `name` ist `"egg"`, `"pet"`, `"battle"` oder `"history"`. |
+| `main.js` (E) | `showScreen(name)` | `name` ist `"egg"`, `"pet"`, `"battle"` oder `"history"`. Dazu kommt `"file"`, der Spielstand-Screen beim Start. |
+
+> **Seit dem Umstieg auf `data.json` (07.10.2026) heißen alle Funktionen gleich wie vorher.** Die `save…`-Funktionen ändern den Spielstand im Arbeitsspeicher und schreiben danach die Datei. Die `load…`-Funktionen antworten weiter sofort. Victoria und Jan müssen an ihrem Code nichts ändern.
 
 > **Warum bekommt `playRound` die Gegner-Attacke als Zahl übergeben,** statt sie selbst zufällig zu wählen? So können die Tests eine feste Gegner-Attacke vorgeben und das Ergebnis ist immer gleich. Im Spiel ruft `battleScreen.js` vorher `chooseOpponentAttack()` auf.
 
@@ -275,11 +289,23 @@ Alle Elemente stehen in `<section id="screen-battle">`. Die Texte darin sind nur
 
 ## 6. Speichern (`storage.js`)
 
-| localStorage-Schlüssel | Inhalt | Anforderungen |
+Der ganze Spielstand steht in **einer** Datei `data.json` im Projektordner:
+
+```json
+{
+  "creature": { "name": "Flammi", "type": "Fire", "stage": "Baby", "needs": { … }, "eggCountdown": 0, "evolutionProgress": 123 },
+  "coins": 100,
+  "battles": [
+    { "opponent": "Grimmzahn", "endedAt": "2026-10-07T16:30:00.000Z", "result": "Win" }
+  ]
+}
+```
+
+| Eintrag in `data.json` | Inhalt | Anforderungen |
 |---|---|---|
-| `hh_creature` | Das Tier als JSON | DH1–DH4, DH13 |
-| `hh_coins` | Münzen als Zahl | DH5 |
-| `hh_battles` | Liste aller Kämpfe als JSON, neueste hinten | DH6–DH8, DH12 |
+| `creature` | Das Tier, oder `null`, solange es noch keines gibt | DH1–DH4, DH13 |
+| `coins` | Münzen als Zahl | DH5 |
+| `battles` | Liste aller Kämpfe, neueste hinten | DH6–DH8, DH12 |
 
 **Wann gespeichert wird:**
 - sofort nach jeder Pflege-Aktion (DH9)
@@ -287,11 +313,23 @@ Alle Elemente stehen in `<section id="screen-battle">`. Die Texte darin sind nur
 - sofort am Kampfende (DH5–DH8)
 - zusätzlich alle 5 Sekunden, damit gesunkene Bedürfnisse und Timer-Stände erhalten bleiben (DH4, DH11)
 
-`localStorage` speichert sofort, also ist die 1-Sekunden-Grenze aus DH9 und DH10 automatisch erfüllt.
+**Wie schnell gespeichert wird:**
+- Jede Speicherung schreibt die ganze Datei neu.
+- Selbst mit 10.000 Kämpfen dauert das nur 3,4 ms (Abschnitt 3). Die 1-Sekunden-Grenze aus DH9 und DH10 ist also erfüllt. `tests.html` prüft das bei jedem Lauf.
+- Die Speicherungen laufen nacheinander in einer Warteschlange, damit nie zwei gleichzeitig in die Datei schreiben.
 
-**Laden (DH11):** `main.js` lädt beim Start zuerst alles und zeigt erst danach den passenden Screen an.
+**Laden (DH11):**
+- Beim Start zeigt `main.js` zuerst nur den Spielstand-Screen.
+- Ist der Ordner noch erlaubt, wird `data.json` sofort geladen. Sonst klickt man auf „📂 Spielordner wählen“. Wie viele Klicks das sind, steht in der Annahme (A) in Abschnitt 3.
+- Erst danach erscheint der Ei- oder Haustier-Screen.
 
-**Für Tests:** Die Schlüssel beginnen mit `storagePrefix` (normal `"hh_"`). `tests.html` setzt den Prefix auf `"test_"`, damit die Tests nie den echten Spielstand überschreiben.
+**Kaputte `data.json`:** Wurde die Datei von Hand falsch bearbeitet und ist kein gültiges JSON mehr, zeigt der Spielstand-Screen eine rote Fehlermeldung. Die Datei wird dann **nicht** überschrieben.
+
+**Für Tests:**
+- Der Dateiname steht in `dataFileName`, normal `"data.json"`.
+- `tests.html` setzt ihn auf `"test-data.json"`, damit die Tests nie den echten Spielstand überschreiben.
+- Ein eigener Test prüft am Ende, dass sich `data.json` nicht verändert hat.
+- `test-data.json` wird nach den Tests wieder gelöscht.
 
 ---
 
@@ -300,7 +338,7 @@ Alle Elemente stehen in `<section id="screen-battle">`. Die Texte darin sind nur
 | | Victoria | Erol | Jan |
 |---|---|---|---|
 | **Requirements** | FR1.1, FR1.2, NFR1.1 | FR2.1, FR2.2, NFR2.1, DH1–DH13 | FR3.1, FR3.2, NFR3.1 |
-| **Dateien** | `pet.js`, `petScreen.js`, `style.css`, `test-pet.js` | `evolution.js`, `storage.js`, `main.js`, `index.html`, `tests.html`, `test-evolution.js`, `README.md` | `battle.js`, `battleScreen.js`, `battle.css`, `test-battle.js` |
+| **Dateien** | `pet.js`, `petScreen.js`, `style.css`, `test-pet.js` | `evolution.js`, `storage.js`, `main.js`, `index.html`, `history.css`, `tests.html`, `test-evolution.js`, `README.md`, `.gitignore` | `battle.js`, `battleScreen.js`, `battle.css`, `test-battle.js` |
 | **Inhalt** | Name und Typ wählen, Countdown anzeigen, Tier mit CSS-Animation, Stadium, 4 Balken, 4 Pflege-Buttons, Münzen, Kampf-Button | Happiness, Evolution, Speichern/Laden, Spieluhr, Screen-Wechsel, Kampf-Historie (20 neueste) | Typen, Attacken, Gegner (mind. 3), Rundenberechnung, Kampf-Screen mit HP-Balken und Log |
 | **HÜ1 anpassen** | FR1.1 | DH8, DH13, „database“ | FR3.1, FR3.2, Kampfalgorithmen |
 
@@ -330,6 +368,7 @@ Damit setzt `git pull` die eigenen neuen Commits einfach hinter die Commits der 
 - Fremde Dateien nicht ändern. Stattdessen dem Owner Bescheid geben.
 - Lieber oft kleine Commits als selten einen großen.
 - Vor jedem Push `index.html` öffnen und kurz prüfen, ob das Spiel noch startet.
+- `data.json` ist der eigene Spielstand und kommt nie ins Repo. Das regelt `.gitignore` automatisch.
 
 ---
 
@@ -344,7 +383,7 @@ Phase 0 ist kein gemeinsames Treffen. Erol baut das Gerüst und pusht es. Erst d
   - Ei-Screen und Haustier-Screen mit allen Buttons und IDs
   - Kampf- und Historie-Screen erst einmal als leere Platzhalter
 - `tests.html` mit der Funktion `check()` anlegen
-- Prüfen, ob `index.html` per Doppelklick startet und in `localStorage` speichert. Mindestens in Chrome, dazu in allen Browsern, die das Team benutzt.
+- Prüfen, ob `index.html` per Doppelklick startet und speichert (damals noch in `localStorage`, seit 07.10. in `data.json`, siehe Abschnitt 3). Mindestens in Chrome, dazu in allen Browsern, die das Team benutzt.
 - **Fertig, wenn:** Das Gerüst ist auf `main` gepusht, `index.html` und `tests.html` öffnen sich ohne Fehler in der Konsole (F12), und Victoria und Jan haben Bescheid bekommen.
 
 ### Phase 1 – Prototyp (heute ab Gerüst bis morgen, 07.10.)
@@ -399,9 +438,12 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 - Baby mit H = 70 für 200 s, dann H = 69 → Timer 0
 - First Evolution mit H = 80 für 600 s → Second Evolution
 
-**Speichern (Erol)**
-- Tier speichern und wieder laden → gleiche Werte
+**Speichern (Erol)**, mit der echten Datei `test-data.json`. Dafür muss man einmal den Projektordner wählen bzw. den Zugriff erlauben.
+- Tier, Münzen und Kämpfe speichern → stehen wirklich in der Datei
+- Arbeitsspeicher leeren und neu aus der Datei laden, wie bei einem Neustart → gleiche Werte (DH11)
 - 25 Kämpfe speichern → `loadRecentBattles(20)` liefert die 20 neuesten, den neuesten zuerst
+- Neu starten → in der Datei steht ein leerer Spielstand
+- Am Ende: `data.json` wurde nicht verändert, `test-data.json` ist gelöscht
 
 **Kampf (Jan)**
 - Typtabelle prüfen:
@@ -425,7 +467,12 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 - Log-Reihenfolge: Die erste Zeile gehört zum Gegner, die zweite zum Spieler.
 
 ### 10.2 Performance (läuft ebenfalls in `tests.html`)
-- **NFR2.1 (Erol):** 10.000 Test-Kämpfe speichern. Danach 5-mal mit `performance.now()` messen, wie lange es dauert, das Tier und die 20 neuesten Kämpfe zu laden. **Jede Messung muss unter 2000 ms liegen.** Außerdem muss `countBattles()` genau 10.000 ergeben (DH12). Am Ende werden die Testdaten gelöscht.
+- **NFR2.1 (Erol):** 10.000 Test-Kämpfe in `test-data.json` schreiben.
+  - Danach 5-mal mit `performance.now()` messen, wie lange es dauert, die Datei zu lesen und daraus das Tier und die 20 neuesten Kämpfe zu laden. **Jede Messung muss unter 2000 ms liegen.**
+  - Außerdem muss `countBattles()` nach dem Laden genau 10.000 ergeben (DH12).
+  - Einmal die ganze Datei schreiben muss unter 1000 ms dauern (DH9, DH10).
+  - Am Ende werden die Testdaten gelöscht.
+  - **Vorher den Spiel-Tab schließen.** Sonst speichert das Spiel währenddessen in `data.json`, und der Test „data.json nicht verändert“ schlägt zu Recht fehl.
 - **NFR3.1 (Jan):** 100 Kämpfe mit zufälligen Attacken durchspielen und jeden `playRound`-Aufruf messen. **Mindestens 95 % der Aufrufe müssen unter 200 ms liegen.**
 - Die Ergebnisse vom Testrechner (Gerät und Browser) kommen ins README.
 
@@ -434,10 +481,10 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 |---|---|
 | FR1.1 | Ei benennen → Countdown ist sichtbar → Tier und Stadium werden angezeigt |
 | NFR1.1 | Klicks vom Haustier-Screen bis zu jeder Aktion zählen. Soll: 1 Klick |
-| DH1, DH5, DH11 | Name vergeben, Kampf gewinnen, Tab schließen und wieder öffnen → Name und Münzen sind gleich |
-| DH2, DH3, DH9, DH10 | Aktion bzw. Evolution auslösen → in F12 → *Application → Local Storage* nachsehen |
+| DH1, DH5, DH11 | Name vergeben, Kampf gewinnen, Tab schließen und wieder öffnen → Name und Münzen sind gleich (0 Klicks). Browser ganz beenden und neu starten → nach 2 Klicks (A) ist alles wieder da |
+| DH2, DH3, DH9, DH10 | Aktion bzw. Evolution auslösen → `data.json` im Texteditor öffnen und nachsehen |
 | DH4 | Happiness halten → neu laden → Evolutions-Timer ist wiederhergestellt |
-| DH6–DH8 | Win, Loss und Draw spielen → Historie und `hh_battles` prüfen |
+| DH6–DH8 | Win, Loss und Draw spielen → Historie und `battles` in `data.json` prüfen |
 | FR3.1 | Kampf-Button erscheint erst ab Second Evolution, der Log zeigt den Gegner vor dem Spieler |
 
 **Schneller testen:** Oben auf der Seite steht der Button **⏩ Tempo**. Jeder Klick schaltet weiter: 1× → 10× → 60× → 1×.
@@ -451,9 +498,10 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 | # | Punkt | Wer | Bis |
 |---|---|---|---|
 | 1 | Annahmen (A) bestätigen | Victoria, Jan | vor ihrem Start heute |
-| 2 | Prüfen, ob `index.html` per Doppelklick in allen benutzten Browsern startet und speichert | Erol (Chrome), Victoria + Jan (eigener Browser beim ersten Öffnen) | heute |
-| 3 | Testrechner festlegen (Gerät + Browser) | alle | vor Phase 3 |
-| 4 | Bei der LV-Leitung nachfragen, ob `localStorage` als „Datenbank“ im Sinne der HÜ1 zählt | Erol | so bald wie möglich |
+| 2 | Prüfen, ob `index.html` per Doppelklick startet und in `data.json` speichert. **Seit 07.10. geht das nur in Chrome, Edge oder einem anderen Chromium-Browser.** | Erol (Helium ✔ am 07.10.), Victoria + Jan (eigener Browser, beim ersten Start den Projektordner wählen) | sofort |
+| 3 | Testrechner festlegen (Gerät + Browser). Der Browser muss Chromium-basiert sein (Abschnitt 3). | alle | vor Phase 3 |
+| 4 | Vorgabe steht fest (Datenbank = lesbare Datei). Noch offen: kurz von der LV-Leitung bestätigen lassen, dass `data.json` so passt (Abschnitt 3). | Erol | so bald wie möglich |
 | 5 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 |
 | 6 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend |
 | 7 | Victorias `Care Actionen HatchHeroes.docx` (Ballspiel, Streicheln, Waschen als Minispiel, Shop) widerspricht der HÜ1. Dort ist Happiness der Durchschnitt der 4 Bedürfnisse, es gibt keinen Shop und keine Münzen fürs Spielen, und NFR1.1 erlaubt max. 2 Klicks. **Entscheidung:** Der Prototyp verwendet 4 einfache Buttons. Die Minispiele kommen danach als Erweiterung und wirken auf die Bedürfnisse (z. B. Ball → Entertainment), nicht direkt auf die Happiness. | Victoria + Erol | nach dem Prototyp |
+| 8 | Victoria und Jan über `data.json` informieren: kein Code ändern, aber Chrome/Edge verwenden und beim ersten Start den Projektordner wählen | Erol | heute |
