@@ -10,7 +10,7 @@ Stand: 06.10.2026
 
 - **Technik:** HTML, CSS und JavaScript. Wir verwenden kein Framework, installieren nichts und haben keinen Build-Schritt. Gestartet wird per Doppelklick auf `index.html`.
 - **Speichern:** `localStorage` des Browsers, die Daten werden dort als JSON-Text abgelegt.
-- **Umfang:** 14 Dateien für Code und Tests, dazu README und dieser Plan. Jede Datei hat genau einen Owner.
+- **Umfang:** 15 Dateien für Code und Tests, dazu README und dieser Plan. Jede Datei hat genau einen Owner.
 - **Git:** Alle arbeiten direkt auf `main`. Jede Person ändert nur ihre eigenen Dateien.
 
 ---
@@ -163,13 +163,14 @@ So muss gespeichert werden, damit es schnell bleibt:
 
 ## 4. Dateien
 
-**14 Dateien für Code und Tests**, dazu README und dieser Plan. V = Victoria, E = Erol, J = Jan. **Jede Datei ändert nur ihr Owner.**
+**15 Dateien für Code und Tests**, dazu README und dieser Plan. V = Victoria, E = Erol, J = Jan. **Jede Datei ändert nur ihr Owner.**
 
 ```
 Gruppe6-HatchHeroes/
 ├── index.html            E   Alle 4 Screens (Ei, Haustier, Kampf, Historie) + <script>-Tags
 ├── style.css             V   Allgemeines Design + Ei- und Haustier-Screen
 ├── battle.css            J   Kampf-Screen
+├── history.css           E   Test-Leiste (Tempo, Neu starten) + Historie-Screen
 ├── js/
 │   ├── pet.js            V   Logik: Name prüfen, Pflege-Aktionen, Bedürfnisse sinken
 │   ├── petScreen.js      V   Ei- und Haustier-Screen anzeigen, Button-Klicks

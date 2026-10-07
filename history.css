@@ -1,0 +1,53 @@
+/* Owner: Erol
+   Test-Leiste und Historie-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
+   Farben wie --muted und --ink kommen aus style.css. */
+
+/* Test-Leiste: klein und dezent über der Karte, damit sie nicht wie ein Spiel-Button wirkt */
+#test-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 640px;
+  margin: 0 auto 12px;
+}
+#test-bar button {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 14px;
+  background: #ffffffcc;
+  color: var(--muted);
+  border-color: #e2dce9;
+}
+#test-bar button:hover { background: #fff; color: var(--ink); }
+/* Roter Rand: dieser Button löscht den Spielstand */
+#test-bar #button-restart { color: #a32020; border-color: #ecc8c8; }
+
+/* DH6–DH8: Jeder Kampf ist eine eigene Zeile, die Farbe zeigt das Ergebnis */
+#history-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+#history-list li {
+  padding: 12px 14px;
+  background: #f8f7fb;
+  border-left: 5px solid #8a8597;
+  border-radius: 10px;
+}
+#history-list li[data-result="Win"] { background: #eef8f0; border-left-color: #2f8a4a; }
+#history-list li[data-result="Loss"] { background: #fcefef; border-left-color: #b42f32; }
+
+#history-empty {
+  margin: 0 0 20px;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  background: #f8f7fb;
+  border-radius: 14px;
+}
+
+/* Zurück ist ein Nebenbutton, wie die Kampf-Historie im Haustier-Screen */
+#history-back-button { background: #f5f3f9; color: #565064; border-color: #e2dce9; }
+#history-back-button:hover { background: #eae5f3; }

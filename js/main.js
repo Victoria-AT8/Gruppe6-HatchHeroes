@@ -106,6 +106,7 @@ function showHistory() {
     const line = document.createElement("li");
     const endedAt = new Date(battle.endedAt).toLocaleString("de-AT");
     line.textContent = battle.opponent + " – " + endedAt + " – " + formatResult(battle.result);
+    line.dataset.result = battle.result;   // history.css färbt die Zeile: Win grün, Loss rot, Draw grau
     list.appendChild(line);
   }
 
