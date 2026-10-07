@@ -8,6 +8,9 @@
 <body>
   <h1>HatchHeroes – Tests</h1>
   <p id="summary">Tests laufen …</p>
+  <!-- Die Speicher-Tests brauchen den Projektordner, weil sie in test-data.json schreiben -->
+  <p id="storage-note"></p>
+  <button id="storage-button" hidden>📂 Testordner wählen</button>
   <ul id="results"></ul>
 
   <!-- Nur die Logik-Dateien laden, keine Screens und kein main.js -->
@@ -17,8 +20,8 @@
   <script src="../js/battle.js"></script>
 
   <script>
-    // Tests speichern unter "test_...", damit der echte Spielstand ("hh_...") unberührt bleibt.
-    storagePrefix = "test_";
+    // Tests speichern in test-data.json, damit der echte Spielstand (data.json) unberührt bleibt.
+    dataFileName = "test-data.json";
 
     let passed = 0;
     let failed = 0;
@@ -59,14 +62,69 @@
   <script src="test-battle.js"></script>
 
   <script>
-    // Zusammenfassung oben auf der Seite
-    const summary = document.getElementById("summary");
-    if (passed + failed === 0) {
-      summary.textContent = "Noch keine Tests vorhanden.";
-    } else {
-      summary.textContent = passed + " von " + (passed + failed) + " Tests bestanden.";
-      summary.style.color = failed === 0 ? "green" : "red";
+    // true, sobald die Speicher-Tests gelaufen sind.
+    let storageTestsDone = false;
+
+    // Zusammenfassung oben auf der Seite.
+    // Grün nur, wenn alles bestanden ist UND die Speicher-Tests schon gelaufen sind.
+    function showSummary() {
+      const summary = document.getElementById("summary");
+      let text = passed + " von " + (passed + failed) + " Tests bestanden.";
+      if (!storageTestsDone) {
+        text = text + " Die Speicher-Tests fehlen noch.";
+      }
+      summary.textContent = text;
+      if (failed > 0) {
+        summary.style.color = "red";
+      } else if (storageTestsDone) {
+        summary.style.color = "green";
+      } else {
+        summary.style.color = "black";
+      }
     }
+
+    // FR2.1, DH1–DH13, NFR2.1: Speicher-Tests mit der echten Datei test-data.json.
+    // Sie brauchen den Projektordner (wie das Spiel). Hat Chrome den Zugriff schon erlaubt,
+    // laufen sie sofort. Sonst erst nach einem Klick auf "Testordner wählen".
+    // askUser: wie bei openDataFolder() in storage.js.
+    async function startStorageTests(askUser) {
+      const note = document.getElementById("storage-note");
+      const button = document.getElementById("storage-button");
+
+      if (!canUseDataFile()) {
+        note.textContent = "Die Speicher-Tests laufen nur in Chrome oder Edge.";
+        return;
+      }
+
+      button.hidden = true;
+      note.textContent = "Speicher-Tests laufen …";
+      try {
+        const opened = await openDataFolder(askUser);
+        if (!opened) {
+          note.textContent = "Für die Speicher-Tests bitte den Projektordner wählen. " +
+            "Die Tests schreiben nur in test-data.json, nie in data.json.";
+          button.hidden = false;
+          return;
+        }
+        await runStorageTests();   // steht in test-evolution.js
+        storageTestsDone = true;
+        note.textContent = "Speicher-Tests fertig.";
+      } catch (error) {
+        // Fehler in async-Funktionen landen nicht beim "error"-Event oben, deshalb hier.
+        failed = failed + 1;
+        showResult(false, "Fehler in den Speicher-Tests: " + error.message);
+        note.textContent = "Die Speicher-Tests sind abgebrochen.";
+        button.hidden = false;
+      }
+      showSummary();
+    }
+
+    // Zuerst laufen alle Tests ohne Datei (oben), dann die Speicher-Tests.
+    showSummary();
+    document.getElementById("storage-button").addEventListener("click", function () {
+      startStorageTests(true);
+    });
+    startStorageTests(false);
   </script>
 </body>
 </html>
