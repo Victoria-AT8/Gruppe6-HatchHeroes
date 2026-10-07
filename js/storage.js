@@ -1,22 +1,32 @@
 // Owner: Erol
-// Speichern und Laden mit der Datei data.json (PROJEKTPLAN.md, Abschnitt 6).
+// Speichern und Laden mit den Dateien data.json und battles.json (PROJEKTPLAN.md, Abschnitt 6).
 // Chrome und Edge dürfen über die File System Access API in einen Ordner schreiben,
 // den der Spieler selbst ausgewählt hat. Firefox und Safari können das nicht.
 //
+// Zwei Dateien:
+// - data.json:    Tier und Münzen. Klein, wird bei jeder Pflege-Aktion und alle 5 s geschrieben.
+// - battles.json: alle Kämpfe. Kann groß werden, wird nur am Kampfende geschrieben.
+// Warum getrennt? Auf Windows prüft der Virenscanner jede Datei nach dem Schreiben. Bei
+// 10.000 Kämpfen dauerte das ~1,5 s. So bleibt das Speichern nach einer Pflege-Aktion
+// schnell (DH9: unter 1 s), egal wie viele Kämpfe es gibt.
+//
 // Ablauf:
-// 1. Beim Start liest openDataFolder() die Datei einmal in saveData ein.
-// 2. Die load...-Funktionen lesen aus saveData und antworten sofort.
-// 3. Die save...-Funktionen ändern saveData und schreiben danach die ganze Datei neu.
+// 1. Beim Start liest openDataFolder() beide Dateien einmal ein (saveData und savedBattles).
+// 2. Die load...-Funktionen lesen aus dem Arbeitsspeicher und antworten sofort.
+// 3. Die save...-Funktionen ändern den Arbeitsspeicher und schreiben danach die Datei neu.
 //
 // Dateien lesen und schreiben dauert ein paar Millisekunden. Diese Funktionen sind "async":
 // Mit "await" wartet man, bis sie fertig sind, ohne dass das Spiel hängen bleibt.
 
-// Name der Datei im Spielordner.
-// tests.html setzt ihn auf "test-data.json", damit die Tests den echten Spielstand nicht überschreiben.
+// Namen der Dateien im Spielordner.
+// tests.html setzt sie auf "test-data.json" und "test-battles.json", damit die Tests den
+// echten Spielstand nicht überschreiben.
 let dataFileName = "data.json";
+let battlesFileName = "battles.json";
 
-// Der Spielstand im Arbeitsspeicher, also eine Kopie des Datei-Inhalts.
-let saveData = makeEmptySaveData();
+// Der Spielstand im Arbeitsspeicher, also eine Kopie der Datei-Inhalte.
+let saveData = makeEmptySaveData();   // Inhalt von data.json
+let savedBattles = [];                // Inhalt von battles.json, neuester Kampf hinten
 
 // Der Ordner, den der Spieler ausgewählt hat. null, solange noch keiner gewählt ist.
 let dataFolder = null;
@@ -34,9 +44,9 @@ let saveErrorShown = false;
 const SAVE_ATTEMPTS = 3;
 const SAVE_RETRY_DELAY_MS = 200;
 
-// Hilfsfunktion: ein leerer Spielstand (noch kein Tier, 0 Münzen, keine Kämpfe).
+// Hilfsfunktion: ein leerer Spielstand für data.json (noch kein Tier, 0 Münzen).
 function makeEmptySaveData() {
-  return { creature: null, coins: 0, battles: [] };
+  return { creature: null, coins: 0 };
 }
 
 // Gibt true zurück, wenn der Browser in Dateien schreiben kann (Chrome, Edge).
@@ -130,30 +140,56 @@ async function openDataFolder(askUser) {
   return true;
 }
 
-// DH11, NFR2.1: Liest die Datei aus dem Spielordner in saveData.
-// Gibt es die Datei noch nicht, wird sie mit einem leeren Spielstand angelegt.
+// DH11, NFR2.1: Liest beide Dateien aus dem Spielordner in den Arbeitsspeicher.
+// Gibt es eine Datei noch nicht, wird sie leer angelegt.
 // Ist der Inhalt kein gültiges JSON (z. B. von Hand falsch bearbeitet), wirft JSON.parse einen
 // Fehler. Die Datei wird dann NICHT überschrieben.
 async function readDataFile() {
-  const fileHandle = await dataFolder.getFileHandle(dataFileName, { create: true });
-  const file = await fileHandle.getFile();
-  const text = await file.text();
-
-  if (text === "") {
+  const dataText = await readFileText(dataFileName);
+  if (dataText === "") {
     saveData = makeEmptySaveData();   // neue, leere Datei
     await writeDataFile();
   } else {
-    saveData = JSON.parse(text);
+    const fileData = JSON.parse(dataText);
+    // Nur Tier und Münzen übernehmen (alte data.json-Dateien hatten auch noch "battles").
+    saveData = { creature: fileData.creature, coins: fileData.coins };
+  }
+
+  const battlesText = await readFileText(battlesFileName);
+  if (battlesText === "") {
+    savedBattles = [];   // neue, leere Datei
+    await writeBattlesFile();
+  } else {
+    savedBattles = JSON.parse(battlesText);
   }
 }
 
-// DH9, DH10, DH12: Stellt das Schreiben der Datei hinten in die Warteschlange.
-// Wer warten muss, bis die Datei wirklich geschrieben ist, schreibt "await writeDataFile()".
+// Hilfsfunktion: gibt den Text einer Datei im Spielordner zurück ("" bei einer neuen Datei).
+async function readFileText(fileName) {
+  const fileHandle = await dataFolder.getFileHandle(fileName, { create: true });
+  const file = await fileHandle.getFile();
+  return file.text();
+}
+
+// DH9, DH10: Schreibt data.json (Tier und Münzen) neu.
+function writeDataFile() {
+  return queueWrite(dataFileName);
+}
+
+// DH6–DH8, DH12: Schreibt battles.json (alle Kämpfe) neu.
+function writeBattlesFile() {
+  return queueWrite(battlesFileName);
+}
+
+// Hilfsfunktion: Stellt das Schreiben einer Datei hinten in die Warteschlange.
+// Wer warten muss, bis die Datei wirklich geschrieben ist, schreibt z. B. "await writeDataFile()".
 // Klappt das Schreiben nicht (Zugriff entzogen, Festplatte voll), erscheint einmal eine Meldung.
 // Klappt es später wieder, wird eine neue Störung auch wieder gemeldet.
 // Alte Kämpfe werden nie automatisch gelöscht (DH12).
-function writeDataFile() {
-  lastWrite = lastWrite.then(writeNow).catch(function (error) {
+function queueWrite(fileName) {
+  lastWrite = lastWrite.then(function () {
+    return writeNow(fileName);
+  }).catch(function (error) {
     if (!saveErrorShown) {
       saveErrorShown = true;
       alert("Speichern fehlgeschlagen: " + error.message);
@@ -162,35 +198,44 @@ function writeDataFile() {
   return lastWrite;
 }
 
-// DH9: Hilfsfunktion für writeDataFile(): schreibt saveData in die Datei, mit bis zu
-// SAVE_ATTEMPTS Versuchen. Warum? Auf Windows darf Chrome die Datei nicht ersetzen,
-// solange ein anderes Programm sie kurz offen hat (z. B. der Virenscanner direkt nach
-// dem letzten Speichern). Dann schlägt ein Versuch fehl – kurz warten und nochmal.
+// Wartet, bis alle Speicherungen in der Warteschlange geschrieben sind (für die Tests).
+function waitForWrites() {
+  return lastWrite;
+}
+
+// DH9: Hilfsfunktion für queueWrite(): schreibt eine Datei, mit bis zu SAVE_ATTEMPTS
+// Versuchen. Warum? Auf Windows darf Chrome die Datei nicht ersetzen, solange ein anderes
+// Programm sie kurz offen hat (z. B. der Virenscanner direkt nach dem letzten Speichern).
+// Dann schlägt ein Versuch fehl – kurz warten und nochmal.
 // Ohne gewählten Ordner passiert nichts.
-async function writeNow() {
+async function writeNow(fileName) {
   if (dataFolder === null) {
     return;
   }
   for (let attempt = 1; attempt <= SAVE_ATTEMPTS; attempt++) {
     try {
-      await writeOnce();
+      await writeOnce(fileName);
       saveErrorShown = false;   // Speichern klappt (wieder) → eine neue Störung wird wieder gemeldet
       return;
     } catch (error) {
       console.warn("Speichern: Versuch " + attempt + " fehlgeschlagen (" + error.name + "): " + error.message);
       if (attempt === SAVE_ATTEMPTS) {
-        throw error;   // alle Versuche fehlgeschlagen → writeDataFile() zeigt die Meldung
+        throw error;   // alle Versuche fehlgeschlagen → queueWrite() zeigt die Meldung
       }
       await new Promise(function (resolve) { setTimeout(resolve, SAVE_RETRY_DELAY_MS); });
     }
   }
 }
 
-// Hilfsfunktion für writeNow(): schreibt saveData einmal als JSON-Text in die Datei.
+// Hilfsfunktion für writeNow(): schreibt den passenden Inhalt einmal als JSON-Text in die Datei.
 // Die Einrückung (2 Leerzeichen) macht die Datei im Texteditor gut lesbar.
-async function writeOnce() {
-  const text = JSON.stringify(saveData, null, 2);
-  const fileHandle = await dataFolder.getFileHandle(dataFileName, { create: true });
+async function writeOnce(fileName) {
+  let content = saveData;           // data.json: Tier und Münzen
+  if (fileName === battlesFileName) {
+    content = savedBattles;         // battles.json: alle Kämpfe
+  }
+  const text = JSON.stringify(content, null, 2);
+  const fileHandle = await dataFolder.getFileHandle(fileName, { create: true });
   const writable = await fileHandle.createWritable();
   try {
     await writable.write(text);
@@ -230,25 +275,27 @@ function loadCoins() {
 // DH6–DH8, DH12: Hängt einen Kampf hinten an die Liste aller Kämpfe an.
 // battle = { opponent, endedAt, result }. Alte Kämpfe werden nie gelöscht.
 function addBattle(battle) {
-  saveData.battles.push(battle);
-  writeDataFile();
+  savedBattles.push(battle);
+  writeBattlesFile();
 }
 
 // NFR2.1: Gibt die count neuesten Kämpfe zurück, den neuesten zuerst.
 // Die neuesten stehen hinten in der Liste: slice(-count) nimmt die letzten count Einträge,
 // reverse() dreht sie um.
 function loadRecentBattles(count) {
-  return saveData.battles.slice(-count).reverse();
+  return savedBattles.slice(-count).reverse();
 }
 
 // DH12: Gibt die Anzahl aller gespeicherten Kämpfe zurück.
 function countBattles() {
-  return saveData.battles.length;
+  return savedBattles.length;
 }
 
 // Neu starten: Setzt den ganzen Spielstand zurück (Tier, Münzen und Kampf-Historie)
-// und schreibt das in die Datei. Mit "await deleteSaveGame()" wartet man, bis die Datei geschrieben ist.
+// und schreibt beide Dateien. Mit "await deleteSaveGame()" wartet man, bis beide geschrieben sind.
 function deleteSaveGame() {
   saveData = makeEmptySaveData();
-  return writeDataFile();
+  savedBattles = [];
+  writeDataFile();
+  return writeBattlesFile();
 }

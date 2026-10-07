@@ -88,51 +88,59 @@ function testEvolution() {
 
 
 // ===== Speichern (storage.js) =====
-// tests.html hat dataFileName schon auf "test-data.json" gesetzt und den Projektordner geöffnet.
-// Der echte Spielstand data.json bleibt unberührt.
+// tests.html hat die Dateinamen schon auf "test-data.json" und "test-battles.json" gesetzt
+// und den Projektordner geöffnet. Der echte Spielstand (data.json, battles.json) bleibt unberührt.
 // Diese Tests sind "async", weil Dateien lesen und schreiben etwas dauert (siehe storage.js).
 
-// Wartet, bis alle Speicherungen geschrieben sind, und löscht dann test-data.json.
+// Wartet, bis alle Speicherungen geschrieben sind, und löscht dann beide Testdateien.
 // Läuft vor den Tests (falls ein alter Testlauf abgebrochen ist) und danach (damit nichts liegen bleibt).
 async function deleteStorageTestData() {
-  await writeDataFile();
-  try {
-    await dataFolder.removeEntry(dataFileName);
-  } catch (error) {
-    if (error.name !== "NotFoundError") {   // Datei gibt es schon nicht mehr → passt
-      throw error;
+  await waitForWrites();
+  for (const fileName of [dataFileName, battlesFileName]) {
+    try {
+      await dataFolder.removeEntry(fileName);
+    } catch (error) {
+      if (error.name !== "NotFoundError") {   // Datei gibt es schon nicht mehr → passt
+        throw error;
+      }
     }
   }
   saveData = makeEmptySaveData();
+  savedBattles = [];
 }
 
-// Liest test-data.json direkt von der Festplatte, ohne storage.js.
+// Liest eine Testdatei direkt von der Festplatte, ohne storage.js.
 // So prüfen wir, was wirklich in der Datei steht, und nicht nur, was im Arbeitsspeicher liegt.
-async function readTestFile() {
-  const fileHandle = await dataFolder.getFileHandle(dataFileName);
+async function readTestFile(fileName) {
+  const fileHandle = await dataFolder.getFileHandle(fileName);
   const file = await fileHandle.getFile();
   return JSON.parse(await file.text());
 }
 
-// Wie ein Neustart des Spiels: Arbeitsspeicher leeren, dann alles aus der Datei neu laden.
+// Wie ein Neustart des Spiels: Arbeitsspeicher leeren, dann alles aus den Dateien neu laden.
 async function reloadFromFile() {
   saveData = makeEmptySaveData();
+  savedBattles = [];
   await readDataFile();
 }
 
-// Gibt zurück, wann data.json (der echte Spielstand) zuletzt geändert wurde.
+// Gibt zurück, wann data.json und battles.json (der echte Spielstand) zuletzt geändert wurden.
 // Damit prüfen wir am Ende, dass die Tests sie nicht angefasst haben.
-async function getGameFileTime() {
-  try {
-    const fileHandle = await dataFolder.getFileHandle("data.json");
-    const file = await fileHandle.getFile();
-    return file.lastModified;
-  } catch (error) {
-    if (error.name === "NotFoundError") {
-      return "keine data.json";
+async function getGameFileTimes() {
+  let times = "";
+  for (const fileName of ["data.json", "battles.json"]) {
+    try {
+      const fileHandle = await dataFolder.getFileHandle(fileName);
+      const file = await fileHandle.getFile();
+      times = times + fileName + ": " + file.lastModified + "  ";
+    } catch (error) {
+      if (error.name !== "NotFoundError") {
+        throw error;
+      }
+      times = times + fileName + ": fehlt  ";
     }
-    throw error;
   }
+  return times;
 }
 
 // Ein Beispiel-Tier für die Speicher-Tests.
@@ -164,13 +172,13 @@ async function testStorage() {
   for (let i = 1; i <= 25; i++) {
     addBattle({ opponent: "Gegner " + i, endedAt: "2026-10-06T12:00:00.000Z", result: "Win" });
   }
-  await writeDataFile();   // warten, bis alles in der Datei steht
+  await waitForWrites();   // warten, bis alles in den Dateien steht
 
-  // Steht alles wirklich in der Datei?
-  const fileData = await readTestFile();
+  // Steht alles wirklich in den Dateien?
+  const fileData = await readTestFile(dataFileName);
   check("Datei: Tier steht in test-data.json", fileData.creature, creature);
   check("Datei: 300 Münzen stehen in test-data.json", fileData.coins, 300);
-  check("Datei: 25 Kämpfe stehen in test-data.json", fileData.battles.length, 25);
+  check("Datei: 25 Kämpfe stehen in test-battles.json", (await readTestFile(battlesFileName)).length, 25);
 
   // DH11: Wie nach einem Neustart aus der Datei laden → gleiche Werte
   await reloadFromFile();
@@ -186,10 +194,12 @@ async function testStorage() {
   check("Speichern: Kampf hat Gegner, Zeit und Ergebnis", recent[0],
     { opponent: "Gegner 25", endedAt: "2026-10-06T12:00:00.000Z", result: "Win" });
 
-  // Neu starten: Spielstand in der Datei ist danach leer
+  // Neu starten: Spielstand in beiden Dateien ist danach leer
   await deleteSaveGame();
-  check("Neu starten: Datei enthält danach einen leeren Spielstand", await readTestFile(),
-    { creature: null, coins: 0, battles: [] });
+  await waitForWrites();
+  check("Neu starten: test-data.json enthält danach kein Tier und 0 Münzen", await readTestFile(dataFileName),
+    { creature: null, coins: 0 });
+  check("Neu starten: test-battles.json enthält danach keine Kämpfe", await readTestFile(battlesFileName), []);
 
   await deleteStorageTestData();
 }
@@ -204,16 +214,17 @@ async function testManyBattles() {
   // (10.000-mal addBattle() würde 10.000-mal die ganze Datei schreiben – NFR2.1 misst aber nur das Laden.)
   const resultValues = ["Win", "Loss", "Draw"];
   for (let i = 1; i <= 10000; i++) {
-    saveData.battles.push({ opponent: "Gegner " + i, endedAt: new Date().toISOString(), result: resultValues[i % 3] });
+    savedBattles.push({ opponent: "Gegner " + i, endedAt: new Date().toISOString(), result: resultValues[i % 3] });
   }
+  writeBattlesFile();
   saveCreature(makeTestCreature());
-  await writeDataFile();
+  await waitForWrites();
 
   // DH12: Alle 10.000 Kämpfe stehen in der Datei und sind nach dem Neuladen abrufbar
   await reloadFromFile();
   check("DH12: countBattles() ergibt nach dem Laden aus der Datei 10.000", countBattles(), 10000);
 
-  // NFR2.1: 5-mal messen, wie lange es dauert, die Datei zu lesen und daraus
+  // NFR2.1: 5-mal messen, wie lange es dauert, beide Dateien zu lesen und daraus
   // das Tier und die 20 neuesten Kämpfe zu laden. Jede Messung < 2000 ms.
   for (let run = 1; run <= 5; run++) {
     const start = performance.now();
@@ -222,21 +233,26 @@ async function testManyBattles() {
     const loadedBattles = loadRecentBattles(20);
     const duration = performance.now() - start;
 
-    check("NFR2.1 Messung " + run + ": Datei lesen + Tier + 20 Kämpfe in " + duration.toFixed(1) +
+    check("NFR2.1 Messung " + run + ": Dateien lesen + Tier + 20 Kämpfe in " + duration.toFixed(1) +
       " ms (Grenze 2000 ms)", duration < 2000 && loadedCreature !== null && loadedBattles.length === 20, true);
   }
 
-  // DH9, DH10: Auch mit 10.000 Kämpfen muss jede Speicherung in unter 1 Sekunde in der Datei stehen.
-  // Gemessen wird einmal die ganze Datei schreiben – genau das passiert bei jeder Speicherung.
+  // DH9, DH10: Auch mit 10.000 Kämpfen muss jede Pflege-Aktion bzw. Evolution in unter 1 Sekunde
+  // gespeichert sein. Dabei wird nur data.json geschrieben – die Kämpfe stehen in battles.json.
   const writeStart = performance.now();
   await writeDataFile();
   const writeDuration = performance.now() - writeStart;
-  check("DH9/DH10: Datei mit 10.000 Kämpfen schreiben in " + writeDuration.toFixed(1) +
+  check("DH9/DH10: data.json speichern (10.000 Kämpfe im Spielstand) in " + writeDuration.toFixed(1) +
     " ms (Grenze 1000 ms)", writeDuration < 1000, true);
 
-  // DH12: Ein weiterer Kampf löscht keine alten Kämpfe
+  // DH12: Ein weiterer Kampf löscht keine alten Kämpfe.
+  // Am Kampfende wird battles.json mit allen Kämpfen neu geschrieben – die Dauer steht zur Info dabei.
+  const battleStart = performance.now();
   addBattle({ opponent: "Gegner 10001", endedAt: new Date().toISOString(), result: "Win" });
-  await writeDataFile();
+  await waitForWrites();
+  const battleDuration = performance.now() - battleStart;
+  check("DH12: battles.json enthält danach 10.001 Kämpfe (geschrieben in " + battleDuration.toFixed(1) + " ms)",
+    (await readTestFile(battlesFileName)).length, 10001);
   await reloadFromFile();
   check("DH12: nach einem weiteren Kampf sind es 10.001", countBattles(), 10001);
   check("DH12: der neue Kampf steht zuerst", loadRecentBattles(1)[0].opponent, "Gegner 10001");
@@ -252,11 +268,11 @@ testHappiness();
 testEvolution();
 
 // Die Speicher-Tests startet tests.html, sobald der Projektordner geöffnet ist.
-// Am Ende prüfen wir, dass data.json (der echte Spielstand) nicht verändert wurde.
+// Am Ende prüfen wir, dass data.json und battles.json (der echte Spielstand) nicht verändert wurden.
 async function runStorageTests() {
-  const gameFileTimeBefore = await getGameFileTime();
+  const gameFileTimesBefore = await getGameFileTimes();
   await testStorage();
   await testManyBattles();
-  check("Echter Spielstand: data.json wurde von den Tests nicht verändert",
-    await getGameFileTime(), gameFileTimeBefore);
+  check("Echter Spielstand: data.json und battles.json wurden von den Tests nicht verändert",
+    await getGameFileTimes(), gameFileTimesBefore);
 }

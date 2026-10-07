@@ -2,9 +2,11 @@
 
 # Spielstand: Jede Person hat ihren eigenen. Hochladen würde ständig Konflikte geben.
 data.json
+battles.json
 
-# Testdaten: löschen die Tests selbst. Bleibt die Datei nach einem Abbruch liegen, kommt sie nicht ins Repo.
+# Testdaten: löschen die Tests selbst. Bleiben sie nach einem Abbruch liegen, kommen sie nicht ins Repo.
 test-data.json
+test-battles.json
 
 # macOS legt diese Datei in jedem Ordner an, den man im Finder öffnet.
 .DS_Store

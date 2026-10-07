@@ -8,7 +8,7 @@
 <body>
   <h1>HatchHeroes – Tests</h1>
   <p id="summary">Tests laufen …</p>
-  <!-- Die Speicher-Tests brauchen den Projektordner, weil sie in test-data.json schreiben -->
+  <!-- Die Speicher-Tests brauchen den Projektordner, weil sie in test-data.json und test-battles.json schreiben -->
   <p id="storage-note"></p>
   <button id="storage-button" hidden>📂 Testordner wählen</button>
   <ul id="results"></ul>
@@ -20,8 +20,9 @@
   <script src="../js/battle.js"></script>
 
   <script>
-    // Tests speichern in test-data.json, damit der echte Spielstand (data.json) unberührt bleibt.
+    // Tests speichern in eigene Dateien, damit der echte Spielstand (data.json, battles.json) unberührt bleibt.
     dataFileName = "test-data.json";
+    battlesFileName = "test-battles.json";
 
     let passed = 0;
     let failed = 0;
@@ -83,7 +84,7 @@
       }
     }
 
-    // FR2.1, DH1–DH13, NFR2.1: Speicher-Tests mit der echten Datei test-data.json.
+    // FR2.1, DH1–DH13, NFR2.1: Speicher-Tests mit den echten Dateien test-data.json und test-battles.json.
     // Sie brauchen den Projektordner (wie das Spiel). Hat Chrome den Zugriff schon erlaubt,
     // laufen sie sofort. Sonst erst nach einem Klick auf "Testordner wählen".
     // askUser: wie bei openDataFolder() in storage.js.
@@ -102,7 +103,7 @@
         const opened = await openDataFolder(askUser);
         if (!opened) {
           note.textContent = "Für die Speicher-Tests bitte den Projektordner wählen. " +
-            "Die Tests schreiben nur in test-data.json, nie in data.json.";
+            "Die Tests schreiben nur in test-data.json und test-battles.json, nie in data.json oder battles.json.";
           button.hidden = false;
           return;
         }
