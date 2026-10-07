@@ -10,3 +10,7 @@ test-battles.json
 
 # macOS legt diese Datei in jedem Ordner an, den man im Finder öffnet.
 .DS_Store
+
+# Unterlagen bleiben lokal. Im Repo liegen nur die Requirements aus Unit 1 (HÜ1).
+docs/*
+!docs/HUE1_HatchHeroes.pdf
