@@ -2,8 +2,13 @@
    Kampf-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
    Verwendet Variablen und Grundregeln aus style.css. */
 
+/* Gehäuse kommt aus style.css (section). Der Kampf-Screen bekommt ein dunkles Indigo,
+   damit man sofort sieht: Jetzt wird gekämpft. */
 #screen-battle {
-  border-top: 5px solid #c93b2b;
+  --accent: #3d3a78;
+  --accent-dark: #27244f;
+  --tint: #eceaf8;
+  --glow: #d4d0ee;
 }
 
 #screen-battle h2 {
@@ -19,17 +24,17 @@
   margin: 16px 0 20px;
   padding: 16px;
   background: radial-gradient(ellipse at center, #ffffff 0%, #f6f4fa 100%);
-  border: 1px solid #ded9e7;
-  border-radius: 18px;
+  border: 2px solid #e4e0ee;
+  border-radius: 24px;
 }
 
 #battle-opponent,
 #battle-player {
   padding: 14px 18px;
   background: #ffffff;
-  border: 1px solid #e7e3ef;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(41, 38, 60, 0.04);
+  border: 2px solid #e7e3ef;
+  border-radius: 18px;
+  box-shadow: 0 4px 0 #e7e3ef;
 }
 
 #battle-opponent {
@@ -52,18 +57,19 @@
 
 #battle-opponent-name,
 #battle-player-name {
-  font-weight: 700;
-  font-size: 16px;
+  font-family: var(--font-toy);
+  font-weight: 600;
+  font-size: 18px;
   color: var(--ink);
 }
 
 #battle-opponent-type,
 #battle-player-type {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 10px;
   background: var(--tint);
   color: var(--accent-dark);
-  border-radius: 8px;
+  border-radius: 999px;
   font-weight: 600;
   font-size: 12px;
 }
@@ -98,7 +104,7 @@
 #battle-opponent-hp-bar,
 #battle-player-hp-bar {
   flex: 1;
-  height: 14px;
+  height: 16px;
   border: none;
   border-radius: 20px;
   overflow: hidden;
@@ -133,12 +139,14 @@
   border-radius: 20px;
 }
 
+/* HP-Zahlen in Pixel-Schrift wie auf einem LCD (Schrift aus style.css) */
 #battle-opponent-hp,
 #battle-player-hp {
-  min-width: 32px;
+  min-width: 36px;
   text-align: right;
-  font-weight: 700;
-  font-size: 14px;
+  font-family: var(--font-lcd);
+  font-weight: 600;
+  font-size: 18px;
   color: var(--ink);
 }
 
@@ -153,18 +161,16 @@
 #battle-attacks button {
   min-height: 52px;
   padding: 10px 14px;
-  font-size: 14px;
+  font-size: 15px;
   background: var(--accent);
   color: white;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background 160ms, transform 160ms, opacity 160ms;
 }
 
 #battle-attacks button:hover:not(:disabled) {
   background: var(--accent-dark);
-  transform: translateY(-2px);
 }
 
 #battle-attacks button:disabled {
@@ -185,9 +191,9 @@
   padding: 10px;
   list-style: none;
   background: #f8f7fb;
-  border: 1px solid #e7e3ef;
-  border-radius: 14px;
-  font-size: 13px;
+  border: 2px solid #e7e3ef;
+  border-radius: 18px;
+  font-size: 14px;
 }
 
 #battle-log:empty {
@@ -216,27 +222,31 @@
   margin: 16px 0;
   padding: 16px 20px;
   text-align: center;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 12px;
+  font-family: var(--font-toy);
+  font-size: 19px;
+  font-weight: 600;
+  border-radius: 18px;
 }
 
 #battle-result[data-result="Win"] {
   color: #1e6b37;
   background: #eef8f0;
   border: 2px solid #2f8a4a;
+  box-shadow: 0 4px 0 #2f8a4a;
 }
 
 #battle-result[data-result="Loss"] {
   color: #8c1f22;
   background: #fcefef;
   border: 2px solid #b42f32;
+  box-shadow: 0 4px 0 #b42f32;
 }
 
 #battle-result[data-result="Draw"] {
   color: #4a455a;
   background: #f0edf6;
   border: 2px solid #8a8597;
+  box-shadow: 0 4px 0 #8a8597;
 }
 
 /* ===== Zurück-Button ===== */
@@ -246,11 +256,16 @@
   background: #f5f3f9;
   color: #565064;
   border: 1px solid #e2dce9;
+  box-shadow: 0 4px 0 #e2dce9;
 }
 
 #battle-back-button:hover {
   background: #eae5f3;
   color: var(--ink);
+}
+
+#battle-back-button:active {
+  box-shadow: 0 1px 0 #e2dce9;
 }
 
 /* ===== Responsive Design ===== */

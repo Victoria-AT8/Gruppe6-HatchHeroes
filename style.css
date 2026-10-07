@@ -1,5 +1,9 @@
 ﻿/* Owner: Victoria – Design für Ei und Haustier (FR1.1, FR1.2, NFR1.1). */
 
+/* Schriften: Fredoka (rund, verspielt) für Überschriften und Buttons, Pixelify Sans für
+   Zahlen wie auf einem LCD-Display. Ohne Internet nimmt der Browser die Ersatzschrift. */
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Pixelify+Sans:wght@500;600&display=swap");
+
 /* FR1.1, FR3.1: hidden hat Vorrang vor allen Layout-Regeln. */
 [hidden] { display: none !important; }
 
@@ -11,48 +15,71 @@
   --glow: #ded0f8;
   --ink: #29263c;
   --muted: #686479;
+  --font-toy: "Fredoka", "Segoe UI", Arial, sans-serif;
+  --font-lcd: "Pixelify Sans", "Consolas", monospace;
 }
 body {
   margin: 0;
   padding: 28px 18px 48px;
   color: var(--ink);
-  background: radial-gradient(ellipse at top left, #e7e1ff, transparent 55%),
-              radial-gradient(ellipse at bottom right, #dff3ed, transparent 55%), #f7f6fb;
-  font-family: "Segoe UI", Arial, sans-serif;
+  /* ruhiges Punkteraster wie eine Spielmatte */
+  background-color: #eef0f7;
+  background-image: radial-gradient(#d6dae8 1.2px, transparent 1.4px);
+  background-size: 22px 22px;
+  font-family: "Segoe UI", system-ui, Arial, sans-serif;
   line-height: 1.5;
   min-height: 100vh;
 }
+/* Logo: dicke, runde Schrift mit festem Schatten wie ein Aufkleber */
 body > h1 {
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   text-align: center;
-  font-size: clamp(28px, 5vw, 40px);
-  letter-spacing: -1.5px;
+  font-family: var(--font-toy);
+  font-weight: 700;
+  font-size: clamp(36px, 7vw, 54px);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
   color: #443270;
+  text-shadow: 0 4px 0 #d3cbee;
 }
+/* Jede Karte ist das Gehäuse eines Spielzeugs: dicker Rand in der Typfarbe und
+   ein fester Schatten nach unten (wie Plastik), statt eines weichen grauen Schattens. */
 section {
   max-width: 640px;
-  margin: 0 auto;
+  margin: 0 auto 10px;
   padding: 28px;
   background: #fff;
-  border: 1px solid #e5e1ee;
-  border-radius: 24px;
-  box-shadow: 0 16px 48px #30204c0d;
+  border: 3px solid var(--accent);
+  border-radius: 32px;
+  box-shadow: 0 10px 0 var(--accent-dark);
 }
-h2 { margin: 0 0 14px; font-size: 28px; letter-spacing: -0.6px; }
+h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-toy);
+  font-weight: 600;
+  font-size: 30px;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
 button, input { font: inherit; }
+/* Buttons wie Gummitasten: Sie haben unten eine sichtbare Kante (box-shadow)
+   und drücken sich beim Klicken ein (:active). */
 button {
   min-height: 48px;
   padding: 12px 18px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--accent);
   color: white;
+  font-family: var(--font-toy);
   font-weight: 600;
+  font-size: 17px;
   cursor: pointer;
-  transition: background 160ms, transform 160ms;
+  box-shadow: 0 4px 0 var(--accent-dark);
+  transition: background 120ms, transform 80ms, box-shadow 80ms;
 }
-button:hover { background: var(--accent-dark); transform: translateY(-2px); }
-button:active { transform: translateY(0); }
+button:hover { background: var(--accent-dark); }
+button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-dark); }
 button:focus-visible, input:focus-visible {
   outline: 3px solid #a86100;
   outline-offset: 4px;
@@ -63,7 +90,6 @@ button:focus-visible, input:focus-visible {
 [data-type="Water"] { --accent: #176b9b; --accent-dark: #105277; --tint: #eaf6ff; --glow: #bce3fa; }
 [data-type="Earth"] { --accent: #397247; --accent-dark: #285535; --tint: #eff7e9; --glow: #d2e7bd; }
 [data-type="Wind"] { --accent: #7350ad; --accent-dark: #57398a; --tint: #f4eeff; --glow: #dfd0fa; }
-#screen-egg, #screen-pet { border-top: 5px solid var(--accent); }
 #screen-egg h2 { text-align: center; }
 #egg-name-input {
   display: block;
@@ -102,7 +128,7 @@ input[type="radio"] { accent-color: var(--accent); }
   background: var(--tint);
   border-radius: 14px;
 }
-#egg-countdown { font-size: 24px; font-weight: 700; color: var(--accent-dark); }
+#egg-countdown { font-family: var(--font-lcd); font-size: 30px; font-weight: 600; color: var(--accent-dark); }
 
 /* FR1.1: Ei und Tier stehen auf einer Bühne in ihrer Typfarbe. */
 #egg-image, #pet-creature {
@@ -113,9 +139,11 @@ input[type="radio"] { accent-color: var(--accent); }
   width: 100%;
   height: 210px;
   margin: 18px 0 24px;
-  border: 1px solid var(--glow);
-  border-radius: 20px;
+  /* das "Display" des Spielzeugs: leicht nach innen gewölbt */
+  border: 2px solid var(--glow);
+  border-radius: 24px;
   background: radial-gradient(circle at 50% 45%, white 0%, var(--tint) 65%);
+  box-shadow: inset 0 4px 0 #00000008;
   font-size: 88px;
   line-height: 1;
 }
@@ -135,7 +163,7 @@ input[type="radio"] { accent-color: var(--accent); }
 #screen-pet[data-stage="Second Evolution"] #pet-creature {
   font-size: 108px;
   border: 2px solid var(--accent);
-  box-shadow: inset 0 0 28px var(--glow);
+  box-shadow: inset 0 0 28px var(--glow), inset 0 4px 0 #00000008;
 }
 @keyframes egg-rock {
   0%, 100% { transform: rotate(-1deg); }
@@ -148,18 +176,20 @@ input[type="radio"] { accent-color: var(--accent); }
 #screen-pet > p { color: var(--muted); font-size: 14px; }
 #pet-type, #pet-stage, #pet-coins {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 3px 10px;
   margin: 3px 0;
   background: var(--tint);
   color: var(--accent-dark);
-  border-radius: 8px;
+  border-radius: 999px;
   font-weight: 600;
 }
-#pet-happiness { color: var(--accent-dark); font-size: 22px; font-weight: 700; }
-#pet-evolution-progress { color: var(--ink); font-weight: 600; }
+/* Zahlen in Pixel-Schrift, wie auf dem LCD eines Tamagotchis */
+#pet-coins, #pet-happiness, #pet-evolution-progress, #pet-needs span { font-family: var(--font-lcd); }
+#pet-happiness { color: var(--accent-dark); font-size: 28px; font-weight: 600; }
+#pet-evolution-progress { color: var(--ink); font-weight: 600; font-size: 17px; }
 
 /* FR1.2, NFR1.1: Werte und Pflege ohne zusätzliche Menüs erreichbar. */
-#pet-needs { margin: 22px 0; padding: 14px 18px; background: #f8f7fb; border-radius: 16px; }
+#pet-needs { margin: 22px 0; padding: 14px 18px; background: #f8f7fb; border: 2px solid #eeebf4; border-radius: 20px; }
 #pet-needs p {
   display: grid;
   grid-template-columns: 125px minmax(0, 1fr) 32px;
@@ -167,10 +197,10 @@ input[type="radio"] { accent-color: var(--accent); }
   align-items: center;
   font-size: 14px;
 }
-#pet-needs span { text-align: right; font-weight: 600; }
+#pet-needs span { text-align: right; font-weight: 600; font-size: 16px; }
 #pet-needs progress {
   width: 100%;
-  height: 12px;
+  height: 14px;
   border: none;
   border-radius: 20px;
   overflow: hidden;
@@ -181,14 +211,26 @@ input[type="radio"] { accent-color: var(--accent); }
 #pet-needs progress::-webkit-progress-value { background: var(--accent); border-radius: 20px; }
 #pet-needs progress::-moz-progress-bar { background: var(--accent); border-radius: 20px; }
 #pet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-#pet-actions button { background: var(--tint); color: var(--accent-dark); border-color: var(--glow); }
+#pet-actions { gap: 12px; }
+/* Abstand zwischen Emoji und Text (Fredoka hat ein sehr schmales Leerzeichen) */
+#pet-actions button, #pet-menu button { word-spacing: 4px; }
+/* Pflege-Tasten: hell in der Typfarbe, Kante in der Glow-Farbe */
+#pet-actions button {
+  background: var(--tint);
+  color: var(--accent-dark);
+  border-color: var(--glow);
+  box-shadow: 0 4px 0 var(--glow);
+}
 #pet-actions button:hover { background: var(--glow); }
-#pet-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #eae6f0; }
-#button-history { background: #f5f3f9; color: #565064; border-color: #e2dce9; }
+#pet-actions button:active { box-shadow: 0 1px 0 var(--glow); }
+#pet-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 2px dashed #eae6f0; }
+/* Nebenbutton: grau, damit "Kämpfen" die Hauptaktion bleibt */
+#button-history { background: #f5f3f9; color: #565064; border-color: #e2dce9; box-shadow: 0 4px 0 #e2dce9; }
 #button-history:hover { background: #eae5f3; }
+#button-history:active { box-shadow: 0 1px 0 #e2dce9; }
 @media (max-width: 440px) {
   body { padding: 18px 12px 32px; }
-  section { padding: 20px 16px; border-radius: 18px; }
+  section { padding: 20px 16px; border-radius: 24px; }
   #egg-form label:has(input[type="radio"]) { width: calc(50% - 8px); }
   #pet-needs { padding: 10px 12px; }
   #pet-needs p { grid-template-columns: 1fr 32px; gap: 6px; }
@@ -199,5 +241,5 @@ input[type="radio"] { accent-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   #egg-image, #pet-creature { animation: none; }
   button { transition: none; }
-  button:hover { transform: none; }
+  button:active { transform: none; }
 }

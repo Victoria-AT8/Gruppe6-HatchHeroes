@@ -9,13 +9,14 @@
   padding: 24px;
   color: var(--muted);
   background: #f8f7fb;
-  border-radius: 14px;
+  border: 2px solid #eeebf4;
+  border-radius: 20px;
 }
 /* Fehler (z. B. falscher Browser, data.json kaputt): roter Kasten wie ein verlorener Kampf.
    main.js setzt dafür data-error="true". */
-#file-message[data-error="true"] { color: #8c1f22; background: #fcefef; }
+#file-message[data-error="true"] { color: #8c1f22; background: #fcefef; border-color: #f0caca; }
 /* Ordner wählen ist hier die einzige Aktion → breiter Hauptbutton wie "Ei ausbrüten" */
-#file-button { display: block; width: 100%; }
+#file-button { display: block; width: 100%; word-spacing: 4px; }
 
 /* Test-Leiste: klein und dezent über der Karte, damit sie nicht wie ein Spiel-Button wirkt */
 #test-bar {
@@ -25,14 +26,19 @@
   max-width: 640px;
   margin: 0 auto 12px;
 }
+/* Test-Buttons bewusst flach (ohne Tastenkante), damit sie nicht wie Spiel-Buttons wirken */
 #test-bar button {
   min-height: 36px;
   padding: 6px 12px;
+  font-family: "Segoe UI", system-ui, Arial, sans-serif;
   font-size: 14px;
   background: #ffffffcc;
   color: var(--muted);
   border-color: #e2dce9;
+  border-radius: 999px;
+  box-shadow: none;
 }
+#test-bar button:active { transform: none; }
 #test-bar button:hover { background: #fff; color: var(--ink); }
 /* Roter Rand: dieser Button löscht den Spielstand */
 #test-bar #button-restart { color: #a32020; border-color: #ecc8c8; }
@@ -46,13 +52,14 @@
   list-style: none;
 }
 #history-list li {
-  padding: 12px 14px;
+  padding: 12px 16px;
   background: #f8f7fb;
-  border-left: 5px solid #8a8597;
-  border-radius: 10px;
+  border: 2px solid #eeebf4;
+  border-left: 6px solid #8a8597;
+  border-radius: 14px;
 }
-#history-list li[data-result="Win"] { background: #eef8f0; border-left-color: #2f8a4a; }
-#history-list li[data-result="Loss"] { background: #fcefef; border-left-color: #b42f32; }
+#history-list li[data-result="Win"] { background: #eef8f0; border-color: #d3ecd9; border-left-color: #2f8a4a; }
+#history-list li[data-result="Loss"] { background: #fcefef; border-color: #f0d3d3; border-left-color: #b42f32; }
 
 #history-empty {
   margin: 0 0 20px;
@@ -60,9 +67,11 @@
   text-align: center;
   color: var(--muted);
   background: #f8f7fb;
-  border-radius: 14px;
+  border: 2px solid #eeebf4;
+  border-radius: 20px;
 }
 
 /* Zurück ist ein Nebenbutton, wie die Kampf-Historie im Haustier-Screen */
-#history-back-button { background: #f5f3f9; color: #565064; border-color: #e2dce9; }
+#history-back-button { background: #f5f3f9; color: #565064; border-color: #e2dce9; box-shadow: 0 4px 0 #e2dce9; }
 #history-back-button:hover { background: #eae5f3; }
+#history-back-button:active { box-shadow: 0 1px 0 #e2dce9; }
