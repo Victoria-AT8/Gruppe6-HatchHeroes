@@ -57,26 +57,35 @@ function testStatCalculations() {
 }
 
 // ===== Ganze Runden und Spezialfälle (Abschnitt 10.1) =====
+
+// Attacken für die Runden-Tests
+const TEST_FEUERBALL = { name: "Feuerball", type: "Fire", attack: 30, defense: 10, isCounter: false };
+const TEST_FEUERSCHILD = { name: "Feuerschild", type: "Fire", attack: 0, defense: 20, isCounter: true };
+const TEST_KRATZER = { name: "Kratzer", type: "Normal", attack: 5, defense: 10, isCounter: false };
+const TEST_WINDSTOSS = { name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false };
+const TEST_SCHATTENSPRUNG = { name: "Schattensprung", type: "Wind", attack: 0, defense: 15, isCounter: true };
+const TEST_FELSMAUER = { name: "Felsmauer", type: "Normal", attack: 5, defense: 50, isCounter: false };
+
+// Baut einen Kampf wie startBattle(), aber mit festen Werten:
+// Spieler ist immer ein Feuer-Tier, jede Seite hat genau 1 Attacke (Nummer 0).
+function makeTestBattle(opponentType, playerAttack, opponentAttack, playerHp, opponentHp) {
+  return {
+    creature: { name: "Flammi", type: "Fire" },
+    opponent: { name: "Testgegner", type: opponentType, attacks: [opponentAttack] },
+    playerHp: playerHp,
+    opponentHp: opponentHp,
+    playerAttacks: [playerAttack],
+    opponentAttacks: [opponentAttack],
+    result: null
+  };
+}
+
 function testBattleRounds() {
   // 1. Ganze Runde: Feuer-Tier mit Feuerball (Feuer, A30/V10) gegen Wind-Tier mit Windstoß (Wind, A20/V10)
   // Spieler: +15 % und +20 % → Angriff 41, Verteidigung 14
   // Gegner: nur +15 % → Angriff 23, Verteidigung 12
   // Gegner verliert 41 − 12 = 29 (→ 71 HP), Spieler verliert 23 − 14 = 9 (→ 91 HP)
-  const fullRoundBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    player: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Grimmzahn",
-      type: "Wind",
-      attacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }]
-    },
-    playerHp: 100,
-    opponentHp: 100,
-    playerAttacks: [{ name: "Feuerball", type: "Fire", attack: 30, defense: 10, isCounter: false }],
-    opponentAttacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }],
-    result: null
-  };
-
+  const fullRoundBattle = makeTestBattle("Wind", TEST_FEUERBALL, TEST_WINDSTOSS, 100, 100);
   const log = playRound(fullRoundBattle, 0, 0);
   check("Ganze Runde: Gegner verliert 29 HP → 71 HP", fullRoundBattle.opponentHp, 71);
   check("Ganze Runde: Spieler verliert 9 HP → 91 HP", fullRoundBattle.playerHp, 91);
@@ -87,108 +96,49 @@ function testBattleRounds() {
   check("Log-Reihenfolge: Zeile 2 ist Spieler", log[1], "Du setzt Feuerball ein – 29 Schaden");
 
   // 2. Konter → beide HP bleiben gleich
-  const counterBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Grimmzahn",
-      type: "Wind",
-      attacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }]
-    },
-    playerHp: 80,
-    opponentHp: 75,
-    playerAttacks: [{ name: "Feuerschild", type: "Fire", attack: 0, defense: 20, isCounter: true }],
-    opponentAttacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }],
-    result: null
-  };
+  const counterBattle = makeTestBattle("Wind", TEST_FEUERSCHILD, TEST_WINDSTOSS, 80, 75);
   playRound(counterBattle, 0, 0);
   check("Konter (Spieler): Spieler-HP bleiben unverändert", counterBattle.playerHp, 80);
   check("Konter (Spieler): Gegner-HP bleiben unverändert", counterBattle.opponentHp, 75);
 
-  const oppCounterBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Grimmzahn",
-      type: "Wind",
-      attacks: [{ name: "Schattensprung", type: "Wind", attack: 0, defense: 15, isCounter: true }]
-    },
-    playerHp: 80,
-    opponentHp: 75,
-    playerAttacks: [{ name: "Feuerball", type: "Fire", attack: 30, defense: 10, isCounter: false }],
-    opponentAttacks: [{ name: "Schattensprung", type: "Wind", attack: 0, defense: 15, isCounter: true }],
-    result: null
-  };
+  const oppCounterBattle = makeTestBattle("Wind", TEST_FEUERBALL, TEST_SCHATTENSPRUNG, 80, 75);
   playRound(oppCounterBattle, 0, 0);
   check("Konter (Gegner): Spieler-HP bleiben unverändert", oppCounterBattle.playerHp, 80);
   check("Konter (Gegner): Gegner-HP bleiben unverändert", oppCounterBattle.opponentHp, 75);
 
   // 3. Ist die Verteidigung größer als der Angriff → Schaden 0, nicht negativ
-  const highDefBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Felsengolem",
-      type: "Earth",
-      attacks: [{ name: "Felsmauer", type: "Normal", attack: 5, defense: 50, isCounter: false }]
-    },
-    playerHp: 100,
-    opponentHp: 100,
-    playerAttacks: [{ name: "Kratzer", type: "Normal", attack: 5, defense: 10, isCounter: false }],
-    opponentAttacks: [{ name: "Felsmauer", type: "Normal", attack: 5, defense: 50, isCounter: false }],
-    result: null
-  };
+  const highDefBattle = makeTestBattle("Earth", TEST_KRATZER, TEST_FELSMAUER, 100, 100);
   playRound(highDefBattle, 0, 0);
   check("Verteidigung > Angriff: Schaden 0, Gegner-HP unverändert bei 100", highDefBattle.opponentHp, 100);
 
   // 4. Hat ein Tier 5 HP und bekommt 29 Schaden → 0 HP, nicht −24
-  const lowHpBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Grimmzahn",
-      type: "Wind",
-      attacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }]
-    },
-    playerHp: 100,
-    opponentHp: 5,
-    playerAttacks: [{ name: "Feuerball", type: "Fire", attack: 30, defense: 10, isCounter: false }],
-    opponentAttacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }],
-    result: null
-  };
+  const lowHpBattle = makeTestBattle("Wind", TEST_FEUERBALL, TEST_WINDSTOSS, 100, 5);
   playRound(lowHpBattle, 0, 0);
   check("5 HP bei 29 Schaden → 0 HP (nicht negativ)", lowHpBattle.opponentHp, 0);
   check("Ergebnis: Nur Gegner bei 0 → Win", lowHpBattle.result, "Win");
 
   // 5. Nur der Spieler bei 0 → Loss
-  const lossBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Grimmzahn",
-      type: "Wind",
-      attacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }]
-    },
-    playerHp: 5,
-    opponentHp: 100,
-    playerAttacks: [{ name: "Feuerball", type: "Fire", attack: 30, defense: 10, isCounter: false }],
-    opponentAttacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }],
-    result: null
-  };
+  const lossBattle = makeTestBattle("Wind", TEST_FEUERBALL, TEST_WINDSTOSS, 5, 100);
   playRound(lossBattle, 0, 0);
   check("Ergebnis: Nur Spieler bei 0 → Loss", lossBattle.result, "Loss");
 
   // 6. Beide bei 0 → Draw
-  const drawBattle = {
-    creature: { name: "Flammi", type: "Fire" },
-    opponent: {
-      name: "Grimmzahn",
-      type: "Wind",
-      attacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }]
-    },
-    playerHp: 5,
-    opponentHp: 5,
-    playerAttacks: [{ name: "Feuerball", type: "Fire", attack: 30, defense: 10, isCounter: false }],
-    opponentAttacks: [{ name: "Windstoß", type: "Wind", attack: 20, defense: 10, isCounter: false }],
-    result: null
-  };
+  const drawBattle = makeTestBattle("Wind", TEST_FEUERBALL, TEST_WINDSTOSS, 5, 5);
   playRound(drawBattle, 0, 0);
   check("Ergebnis: Beide bei 0 → Draw", drawBattle.result, "Draw");
+}
+
+// ===== startBattle (Abschnitt 2.5) =====
+function testStartBattle() {
+  const battle = startBattle({ name: "Flammi", type: "Water", stage: "Second Evolution" });
+  check("startBattle: beide starten mit 100 HP", [battle.playerHp, battle.opponentHp], [100, 100]);
+  check("startBattle: Spieler bekommt die 4 Wasser-Attacken", battle.playerAttacks, ATTACKS.Water);
+  check("startBattle: Gegner hat 4 Attacken", battle.opponentAttacks.length, 4);
+  check("startBattle: Kampf läuft noch", battle.result, null);
+
+  // Ein Kampf darf die Tabelle ATTACKS nicht verändern (es sind Kopien).
+  battle.playerAttacks[0].attack = 999;
+  check("startBattle: Attacken sind Kopien, ATTACKS bleibt gleich", ATTACKS.Water[0].attack, 30);
 }
 
 // ===== NFR3.1 Performance-Messung (Abschnitt 10.2) =====
@@ -231,4 +181,5 @@ function testNfr31() {
 testTypeTable();
 testStatCalculations();
 testBattleRounds();
+testStartBattle();
 testNfr31();

@@ -10,7 +10,7 @@ Stand: 07.10.2026
 
 - **Technik:** HTML, CSS und JavaScript. Wir verwenden kein Framework, installieren nichts und haben keinen Build-Schritt. Gestartet wird per Doppelklick auf `index.html` in **Chrome oder Edge** (oder einem anderen Chromium-Browser).
 - **Speichern:** in den Dateien **`data.json`** (Tier, Münzen) und **`battles.json`** (Kämpfe) im Projektordner. Man kann sie mit jedem Texteditor öffnen und lesen. Der Browser schreibt sie direkt über die *File System Access API*, ohne Server.
-- **Umfang:** 15 Dateien für Code und Tests, dazu README, dieser Plan und `.gitignore`. Jede Datei hat genau einen Owner.
+- **Umfang:** 16 Dateien für Code und Tests, dazu README, dieser Plan und `.gitignore`. Jede Datei hat genau einen Owner.
 - **Git:** Alle arbeiten direkt auf `main`. Jede Person ändert nur ihre eigenen Dateien.
 
 ---
@@ -41,9 +41,9 @@ Stand: 07.10.2026
 | FR2.1, FR3.2, DH9, DH12, „Battle termination“ | „database“ → „a local JSON file (data.json bzw. battles.json) on the player's computer“ | Erol |
 | FR2.1, DH11 | Der Typ wird mitgespeichert bzw. nach dem Neustart wiederhergestellt. | Erol |
 
-> **Fertige Texte:** Alle Änderungen stehen als englische Requirement-Texte (alte und neue Fassung) in `HUE1_Aenderungen.md`.
+> **Fertige Texte:** Alle Änderungen stehen als englische Requirement-Texte (alte und neue Fassung) in `docs/HUE1_Aenderungen.md`.
 
-> Die Quelldatei der HÜ1 ist `Projekt HatchHeroes_HÜ1_Group6.odt`. Änderungen also dort machen und `HUE1_HatchHeroes.pdf` danach neu exportieren. `Data HatchHeroes.docx` ist unsere Abgabe aus Übung 2 und hat mit der HÜ1 nichts zu tun.
+> Die Quelldatei der HÜ1 ist `Projekt HatchHeroes_HÜ1_Group6.odt`. Änderungen also dort machen und `docs/HUE1_HatchHeroes.pdf` danach neu exportieren. `docs/Data HatchHeroes.docx` ist unsere Abgabe aus Übung 2 und hat mit der HÜ1 nichts zu tun.
 
 ---
 
@@ -177,37 +177,45 @@ So muss gespeichert werden, damit es schnell bleibt:
 
 ## 4. Dateien
 
-**15 Dateien für Code und Tests**, dazu README, dieser Plan und `.gitignore`. V = Victoria, E = Erol, J = Jan. **Jede Datei ändert nur ihr Owner.**
+**16 Dateien für Code und Tests**, dazu README, dieser Plan und `.gitignore`. V = Victoria, E = Erol, J = Jan. **Jede Datei ändert nur ihr Owner.**
 
 ```
 Gruppe6-HatchHeroes/
-├── index.html            E   Alle 5 Screens (Spielstand, Ei, Haustier, Kampf, Historie) + <script>-Tags
-├── style.css             V   Allgemeines Design + Ei- und Haustier-Screen
-├── battle.css            J   Kampf-Screen
-├── history.css           E   Spielstand-Screen + Test-Leiste (Tempo, Neu starten) + Historie-Screen
+├── index.html              E   Alle 5 Screens (Spielstand, Ei, Haustier, Kampf, Historie) + <script>-Tags
+├── README.md               E   Wie starte ich Spiel und Tests + Überblick über den Code
+├── PROJEKTPLAN.md          E   Dieser Plan
+├── .gitignore              E   Spielstand, Testdateien und .DS_Store nicht hochladen
+├── css/
+│   ├── style.css           V   Allgemeines Design + Ei- und Haustier-Screen
+│   ├── battle.css          J   Kampf-Screen
+│   └── history.css         E   Spielstand-Screen + Test-Leiste (Tempo, Neu starten) + Historie-Screen
 ├── js/
-│   ├── pet.js            V   Logik: Name prüfen, Pflege-Aktionen, Bedürfnisse sinken
-│   ├── petScreen.js      V   Ei- und Haustier-Screen anzeigen, Button-Klicks
-│   ├── evolution.js      E   Logik: Happiness, Countdown, Evolution
-│   ├── storage.js        E   Speichern und Laden mit data.json und battles.json
-│   ├── battle.js         J   Logik + Daten: Typen, Attacken, Gegner, Runde berechnen
-│   ├── battleScreen.js   J   Kampf-Screen anzeigen, Button-Klicks, Kampf-Log
-│   └── main.js           E   Start (Spielstand laden), Uhr (1 Tick pro Sekunde), Screen-Wechsel, Historie
+│   │   — Logik (nur Rechnungen und Tabellen, kein HTML, kein Speichern → direkt testbar) —
+│   ├── pet.js              V   Tier: neues Tier anlegen, Name prüfen, Pflege, Bedürfnisse sinken,
+│   │                           Typnamen und Bilder (auch für den Kampf-Screen)
+│   ├── evolution.js        E   Happiness, Ei-Countdown, Evolution
+│   ├── battle.js           J   Typen, Attacken, Gegner, Runde berechnen
+│   │   — Speichern —
+│   ├── storage.js          E   Speichern und Laden mit data.json und battles.json
+│   │   — Anzeige (ein …Screen.js pro Screen: HTML füllen, Button-Klicks) —
+│   ├── petScreen.js        V   Ei- und Haustier-Screen
+│   ├── battleScreen.js     J   Kampf-Screen, Kampf-Log
+│   ├── historyScreen.js    E   Historie-Screen (die 20 neuesten Kämpfe)
+│   │   — Start —
+│   └── main.js             E   Spielstand laden, Spieluhr (1 Tick pro Sekunde), Screen-Wechsel, Test-Leiste
 ├── tests/
-│   ├── tests.html        E   Öffnen → zeigt alle Testergebnisse (✔ / ✘)
-│   ├── test-pet.js       V
-│   ├── test-evolution.js E   inkl. Speicher-Tests und NFR2.1-Messung (mit test-data.json und test-battles.json)
-│   └── test-battle.js    J   inkl. NFR3.1-Messung
-├── data.json                 Spielstand: Tier und Münzen. Legt das Spiel beim ersten Start an. Nicht im Repo (.gitignore)
-├── battles.json              Spielstand: alle Kämpfe. Ebenso
-├── .gitignore            E   Spielstand, Testdateien und .DS_Store nicht hochladen
-├── README.md             E   Wie starte ich das Spiel und die Tests
-├── PROJEKTPLAN.md        E
-├── HUE1_Aenderungen.md   E   Fertige Texte für die HÜ1-Änderungen (Abschnitt 1)
-├── HUE1_HatchHeroes.pdf
-├── Algorithm.pdf
-├── Data HatchHeroes.docx           Abgabe Übung 2
-└── Care Actionen HatchHeroes.docx  Ideen für Pflege-Minispiele (siehe Abschnitt 11, Punkt 7)
+│   ├── tests.html          E   Öffnen → zeigt alle Testergebnisse (✔ / ✘)
+│   ├── test-pet.js         V
+│   ├── test-evolution.js   E   inkl. Speicher-Tests und NFR2.1-Messung (mit test-data.json und test-battles.json)
+│   └── test-battle.js      J   inkl. NFR3.1-Messung
+├── docs/                       Abgaben und Unterlagen (kein Code)
+│   ├── HUE1_Aenderungen.md E   Fertige Texte für die HÜ1-Änderungen (Abschnitt 1)
+│   ├── HUE1_HatchHeroes.pdf
+│   ├── Algorithm.pdf
+│   ├── Data HatchHeroes.docx           Abgabe Übung 2
+│   └── Care Actionen HatchHeroes.docx  Ideen für Pflege-Minispiele (siehe Abschnitt 11, Punkt 7)
+├── data.json                   Spielstand: Tier und Münzen. Legt das Spiel beim ersten Start an. Nicht im Repo (.gitignore)
+└── battles.json                Spielstand: alle Kämpfe. Ebenso
 ```
 
 **Warum Logik und Anzeige getrennt sind** (z. B. `pet.js` und `petScreen.js`): Die Logik-Dateien enthalten nur Rechnungen. Sie greifen weder auf HTML-Elemente noch auf den Speicher zu. Deshalb lädt `tests.html` sie direkt und prüft sie, ohne dass jemand klicken muss.
@@ -243,6 +251,9 @@ Jede Datei verwendet nur Funktionen, die hier stehen.
 | Datei | Funktion | Was sie tut |
 |---|---|---|
 | `pet.js` (V) | `isValidName(text)` | `true`/`false` |
+| | `createCreature(name, type)` | Gibt ein neues Tier im Stadium `"Egg"` mit den Startwerten oben zurück |
+| | `getCreatureImage(creature)` | Emoji für Typ und Stadium (🥚 beim Ei) |
+| | `TYPE_NAMES`, `CREATURE_IMAGES`, `NEED_NAMES` | Tabellen: deutscher Typname, Bilder, die 4 Bedürfnisse |
 | | `careAction(creature, action)` | `action` ist `"feed"`, `"wash"`, `"play"` oder `"sleep"`. Erhöht das passende Bedürfnis um 25, höchstens auf 100. |
 | | `decayNeeds(creature)` | Senkt alle 4 Bedürfnisse um 1, nie unter 0 |
 | `petScreen.js` (V) | `showEggScreen()`, `showPetScreen()`, `updatePetScreen(creature, coins)` | Anzeige |
@@ -257,6 +268,7 @@ Jede Datei verwendet nur Funktionen, die hier stehen.
 | | `chooseOpponentAttack()` | Zufallszahl 0–3 |
 | | `playRound(battle, playerAttack, opponentAttack)` | Bekommt beide Attacken-Nummern (0–3). Ändert die HP, gibt die 2 Log-Zeilen (Gegner, Spieler) zurück und setzt `battle.result` am Ende. |
 | `battleScreen.js` (J) | `showBattleScreen(creature)` | Anzeige + Ablauf. Am Ende `addBattle()` und bei Win `saveCoins()`. |
+| `historyScreen.js` (E) | `showHistory()` | Zeigt die 20 neuesten Kämpfe an |
 | `main.js` (E) | `showScreen(name)` | `name` ist `"egg"`, `"pet"`, `"battle"` oder `"history"`. Dazu kommt `"file"`, der Spielstand-Screen beim Start. |
 
 > **Seit dem Umstieg auf Dateien (07.10.2026) heißen alle Funktionen gleich wie vorher.** Die `save…`-Funktionen ändern den Spielstand im Arbeitsspeicher und schreiben danach die Datei. Die `load…`-Funktionen antworten weiter sofort. Victoria und Jan müssen an ihrem Code nichts ändern.
@@ -350,7 +362,7 @@ Der Spielstand steht in **zwei** Dateien im Projektordner. Warum zwei, steht in 
 | | Victoria | Erol | Jan |
 |---|---|---|---|
 | **Requirements** | FR1.1, FR1.2, NFR1.1 | FR2.1, FR2.2, NFR2.1, DH1–DH13 | FR3.1, FR3.2, NFR3.1 |
-| **Dateien** | `pet.js`, `petScreen.js`, `style.css`, `test-pet.js` | `evolution.js`, `storage.js`, `main.js`, `index.html`, `history.css`, `tests.html`, `test-evolution.js`, `README.md`, `.gitignore` | `battle.js`, `battleScreen.js`, `battle.css`, `test-battle.js` |
+| **Dateien** | `pet.js`, `petScreen.js`, `style.css`, `test-pet.js` | `evolution.js`, `storage.js`, `main.js`, `historyScreen.js`, `index.html`, `history.css`, `tests.html`, `test-evolution.js`, `README.md`, `.gitignore` | `battle.js`, `battleScreen.js`, `battle.css`, `test-battle.js` |
 | **Inhalt** | Name und Typ wählen, Countdown anzeigen, Tier mit CSS-Animation, Stadium, 4 Balken, 4 Pflege-Buttons, Münzen, Kampf-Button | Happiness, Evolution, Speichern/Laden, Spieluhr, Screen-Wechsel, Kampf-Historie (20 neueste) | Typen, Attacken, Gegner (mind. 3), Rundenberechnung, Kampf-Screen mit HP-Balken und Log |
 | **HÜ1 anpassen** | FR1.1 | DH8, DH13, „database“ | FR3.1, FR3.2, Kampfalgorithmen |
 

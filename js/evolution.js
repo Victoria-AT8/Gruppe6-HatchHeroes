@@ -1,5 +1,5 @@
 // Owner: Erol
-// Happiness, Ei-Countdown und Evolution – nur Rechnungen, kein HTML, kein localStorage.
+// Happiness, Ei-Countdown und Evolution – nur Rechnungen, kein HTML, kein Speichern.
 // Regeln: PROJEKTPLAN.md, Abschnitt 2.3 und 2.4
 
 const EGG_COUNTDOWN_SECONDS = 60;

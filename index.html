@@ -5,14 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HatchHeroes</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="battle.css">
-  <link rel="stylesheet" href="history.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/battle.css">
+  <link rel="stylesheet" href="css/history.css">
 </head>
 <body>
   <h1>HatchHeroes</h1>
 
-  <!-- Test-Leiste (Erol): steht außerhalb der Screens, Design in history.css -->
+  <!-- Test-Leiste (Erol): steht außerhalb der Screens, Design in css/history.css -->
   <div id="test-bar">
     <!-- Test-Button: Spielzeit schneller laufen lassen -->
     <button id="button-speed">⏩ Tempo: 1×</button>
@@ -22,7 +22,7 @@
 
   <!-- ===== Spielstand-Screen (Erol): data.json laden, bevor das Spiel startet (DH11) =====
        Ist als einziger Screen von Anfang an sichtbar. main.js schreibt den Text in file-message
-       und zeigt file-button nur, wenn ein Klick nötig ist. Design in history.css. -->
+       und zeigt file-button nur, wenn ein Klick nötig ist. Design in css/history.css. -->
   <section id="screen-file">
     <h2>Spielstand</h2>
     <p id="file-message">Spielstand wird geladen …</p>
@@ -87,7 +87,7 @@
     </div>
   </section>
 
-  <!-- ===== Kampf-Screen (Jan): Inhalt füllt battleScreen.js, Design in battle.css ===== -->
+  <!-- ===== Kampf-Screen (Jan): Inhalt füllt battleScreen.js, Design in css/battle.css ===== -->
   <section id="screen-battle" hidden>
     <h2>Kampf</h2>
 
@@ -122,7 +122,7 @@
     <button id="battle-back-button">Zurück</button>
   </section>
 
-  <!-- ===== Historie-Screen (Erol): die 20 neuesten Kämpfe, der neueste zuerst ===== -->
+  <!-- ===== Historie-Screen (Erol): Inhalt füllt historyScreen.js, die 20 neuesten Kämpfe, der neueste zuerst ===== -->
   <section id="screen-history" hidden>
     <h2>Kampf-Historie</h2>
     <p id="history-empty" hidden>Noch keine Kämpfe.</p>
@@ -130,13 +130,14 @@
     <button id="history-back-button">Zurück</button>
   </section>
 
-  <!-- Reihenfolge: zuerst Logik, dann Anzeige, main.js immer als letztes -->
+  <!-- Reihenfolge: zuerst Speichern und Logik, dann Anzeige (…Screen.js), main.js immer als letztes -->
   <script src="js/storage.js"></script>
   <script src="js/pet.js"></script>
   <script src="js/evolution.js"></script>
   <script src="js/battle.js"></script>
   <script src="js/petScreen.js"></script>
   <script src="js/battleScreen.js"></script>
+  <script src="js/historyScreen.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

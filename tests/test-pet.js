@@ -41,3 +41,19 @@ careAction(petTestCreature, "feed");
 decayNeeds(petTestCreature);
 check("Ei hat noch keine Pflege und keinen Verfall", petTestCreature.needs,
   { fullness: 99, cleanliness: 0, entertainment: 0, rest: 49 });
+
+// FR1.1: Ein neues Tier startet als Ei mit den Startwerten aus PROJEKTPLAN.md, Abschnitt 5.
+check("createCreature: neues Tier mit Startwerten", createCreature("  Flammi ", "Fire"), {
+  name: "Flammi",
+  type: "Fire",
+  stage: "Egg",
+  needs: { fullness: 50, cleanliness: 50, entertainment: 50, rest: 50 },
+  eggCountdown: 60,
+  evolutionProgress: 0
+});
+
+// FR1.1: Bild passend zu Stadium und Typ
+check("getCreatureImage: Ei ist 🥚", getCreatureImage({ type: "Water", stage: "Egg" }), "🥚");
+check("getCreatureImage: Wasser-Baby ist 🐟", getCreatureImage({ type: "Water", stage: "Baby" }), "🐟");
+check("getCreatureImage: Erde, Second Evolution ist 🦁",
+  getCreatureImage({ type: "Earth", stage: "Second Evolution" }), "🦁");

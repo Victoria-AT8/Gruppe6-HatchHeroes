@@ -1,5 +1,5 @@
 // Owner: Jan
-// Kampf-Logik und Kampf-Daten – nur Rechnungen, kein HTML, kein localStorage.
+// Kampf-Logik und Kampf-Daten – nur Rechnungen und Tabellen, kein HTML, kein Speichern.
 // Regeln: PROJEKTPLAN.md, Abschnitt 2.5
 
 const START_HEALTH = 100;
@@ -90,12 +90,17 @@ const OPPONENTS = [
   }
 ];
 
-// Gibt die 4 Attacken für einen Tier-Typ zurück (Kopie)
-function getAttacksForType(type) {
-  const list = ATTACKS[type] || ATTACKS.Fire;
-  return list.map(function (attack) {
+// Hilfsfunktion: gibt eine Kopie einer Attacken-Liste zurück.
+// So ändert ein Kampf nie die Tabellen ATTACKS und OPPONENTS oben.
+function copyAttacks(attacks) {
+  return attacks.map(function (attack) {
     return Object.assign({}, attack);
   });
+}
+
+// Gibt die 4 Attacken für einen Tier-Typ zurück (Kopie).
+function getAttacksForType(type) {
+  return copyAttacks(ATTACKS[type]);
 }
 
 // Gibt true zurück, wenn type laut Tabelle stark gegen enemyType ist.
@@ -114,26 +119,27 @@ function calcStat(creatureType, enemyType, baseValue, attackType) {
 }
 
 // Gibt ein neues Kampf-Objekt zurück: zufälliger Gegner, beide mit START_HEALTH.
+// battle = {
+//   creature, opponent,             das eigene Tier und der Gegner ({ name, type, image, attacks })
+//   playerHp, opponentHp,           0 bis START_HEALTH
+//   playerAttacks, opponentAttacks, je 4 Attacken, die Nummer 0–3 passt zu playRound()
+//   result                          null, solange der Kampf läuft, danach "Win", "Loss" oder "Draw"
+// }
 function startBattle(creature) {
-  const opponentTemplate = OPPONENTS[Math.floor(Math.random() * OPPONENTS.length)];
+  const template = OPPONENTS[Math.floor(Math.random() * OPPONENTS.length)];
   const opponent = {
-    name: opponentTemplate.name,
-    type: opponentTemplate.type,
-    image: opponentTemplate.image,
-    attacks: opponentTemplate.attacks.map(function (attack) {
-      return Object.assign({}, attack);
-    })
+    name: template.name,
+    type: template.type,
+    image: template.image,
+    attacks: copyAttacks(template.attacks)
   };
-
-  const playerAttacks = getAttacksForType(creature.type);
 
   return {
     creature: creature,
-    player: creature,
     opponent: opponent,
     playerHp: START_HEALTH,
     opponentHp: START_HEALTH,
-    playerAttacks: playerAttacks,
+    playerAttacks: getAttacksForType(creature.type),
     opponentAttacks: opponent.attacks,
     result: null
   };
@@ -144,59 +150,36 @@ function chooseOpponentAttack() {
   return Math.floor(Math.random() * 4);
 }
 
-// Spielt eine Runde: playerAttack und opponentAttack sind Nummern von 0 bis 3
-// (oder direkte Attacken-Objekte für flexible Tests).
+// Spielt eine Runde: playerAttack und opponentAttack sind Nummern von 0 bis 3.
 // Ändert die HP in battle, setzt am Ende battle.result ("Win", "Loss" oder "Draw")
 // und gibt die 2 Log-Zeilen zurück: zuerst Gegner, dann Spieler.
 function playRound(battle, playerAttack, opponentAttack) {
-  // Attacken ermitteln
-  let playerAttackObj;
-  if (typeof playerAttack === "number") {
-    const pList = battle.playerAttacks || (battle.creature && ATTACKS[battle.creature.type]) || ATTACKS.Fire;
-    playerAttackObj = pList[playerAttack];
-  } else {
-    playerAttackObj = playerAttack;
-  }
-
-  let opponentAttackObj;
-  if (typeof opponentAttack === "number") {
-    const oList = battle.opponentAttacks || (battle.opponent && battle.opponent.attacks);
-    opponentAttackObj = oList[opponentAttack];
-  } else {
-    opponentAttackObj = opponentAttack;
-  }
-
-  const playerType = (battle.creature && battle.creature.type) || (battle.player && battle.player.type);
-  const opponentType = battle.opponent && battle.opponent.type;
+  // 1. Attacken und Typen holen
+  const playerMove = battle.playerAttacks[playerAttack];
+  const opponentMove = battle.opponentAttacks[opponentAttack];
+  const playerType = battle.creature.type;
+  const opponentType = battle.opponent.type;
 
   // 2. Ist mindestens eine der beiden Attacken ein Konter, endet die Runde ohne Schaden.
-  const isCounter = Boolean(playerAttackObj.isCounter || opponentAttackObj.isCounter);
-
   let damageToOpponent = 0;
   let damageToPlayer = 0;
-
-  if (!isCounter) {
+  if (!playerMove.isCounter && !opponentMove.isCounter) {
     // 3. Jede Seite berechnet die Werte für ihre eigene Attacke
-    const playerAtk = calcStat(playerType, opponentType, playerAttackObj.attack, playerAttackObj.type);
-    const playerDef = calcStat(playerType, opponentType, playerAttackObj.defense, playerAttackObj.type);
+    const playerAtk = calcStat(playerType, opponentType, playerMove.attack, playerMove.type);
+    const playerDef = calcStat(playerType, opponentType, playerMove.defense, playerMove.type);
+    const opponentAtk = calcStat(opponentType, playerType, opponentMove.attack, opponentMove.type);
+    const opponentDef = calcStat(opponentType, playerType, opponentMove.defense, opponentMove.type);
 
-    const oppAtk = calcStat(opponentType, playerType, opponentAttackObj.attack, opponentAttackObj.type);
-    const oppDef = calcStat(opponentType, playerType, opponentAttackObj.defense, opponentAttackObj.type);
-
-    // 4. Schaden berechnen:
-    damageToOpponent = Math.max(0, playerAtk - oppDef);
-    damageToPlayer = Math.max(0, oppAtk - playerDef);
+    // 4. Schaden = Angriff − Verteidigung der anderen Seite, nie negativ
+    damageToOpponent = Math.max(0, playerAtk - opponentDef);
+    damageToPlayer = Math.max(0, opponentAtk - playerDef);
   }
 
   // 5. Beide Schäden werden gleichzeitig abgezogen. HP fallen nie unter 0.
   battle.opponentHp = Math.max(0, battle.opponentHp - damageToOpponent);
   battle.playerHp = Math.max(0, battle.playerHp - damageToPlayer);
 
-  // 6. Anzeige: zuerst „Gegner setzt X ein – n Schaden“, danach „Du setzt Y ein – m Schaden“.
-  const opponentLog = "Gegner setzt " + opponentAttackObj.name + " ein – " + damageToPlayer + " Schaden";
-  const playerLog = "Du setzt " + playerAttackObj.name + " ein – " + damageToOpponent + " Schaden";
-
-  // 7. Kampfende prüfen:
+  // 6. Kampfende prüfen
   if (battle.playerHp === 0 && battle.opponentHp === 0) {
     battle.result = "Draw";
   } else if (battle.opponentHp === 0) {
@@ -207,5 +190,9 @@ function playRound(battle, playerAttack, opponentAttack) {
     battle.result = null;
   }
 
-  return [opponentLog, playerLog];
+  // 7. Log: zuerst „Gegner setzt X ein – n Schaden“, danach „Du setzt Y ein – m Schaden“.
+  return [
+    "Gegner setzt " + opponentMove.name + " ein – " + damageToPlayer + " Schaden",
+    "Du setzt " + playerMove.name + " ein – " + damageToOpponent + " Schaden"
+  ];
 }

@@ -1,203 +1,161 @@
 // Owner: Jan
 // Anzeige des Kampf-Screens + Button-Klicks.
-// Die IDs der HTML-Elemente stehen in index.html (Abschnitt 5).
+// Die IDs der HTML-Elemente stehen in index.html (PROJEKTPLAN.md, Abschnitt 5).
 // Die Variablen creature und coins kommen aus main.js.
+//
+// Ablauf eines Kampfs:
+// showBattleScreen() → pro Klick handleAttackClick() → am Ende endBattle()
 
-const BATTLE_TYPE_NAMES = {
-  Fire: "Feuer",
-  Water: "Wasser",
-  Earth: "Erde",
-  Wind: "Wind"
+const BATTLE_RESULT_MESSAGES = {
+  Win: "🏆 Sieg! Du hast den Kampf gewonnen (+" + WIN_COINS + " Münzen).",
+  Loss: "💀 Niederlage! Du hast den Kampf verloren.",
+  Draw: "🤝 Unentschieden!"
 };
 
-const BATTLE_CREATURE_IMAGES = {
-  Fire: { Baby: "🐣", "First Evolution": "🐦", "Second Evolution": "🐦‍🔥" },
-  Water: { Baby: "🐟", "First Evolution": "🐬", "Second Evolution": "🐋" },
-  Earth: { Baby: "🐱", "First Evolution": "🐆", "Second Evolution": "🦁" },
-  Wind: { Baby: "🐛", "First Evolution": "🦋", "Second Evolution": "🦅" }
-};
-
+// Der laufende Kampf (siehe startBattle() in battle.js). null, solange noch keiner lief.
 let currentBattle = null;
 let attackButtonsInitialized = false;
 
-// Klick-Handler für die 4 Attacken-Buttons nur einmal anmelden (PROJEKTPLAN.md / Feedback Jan)
+// FR3.1: Startet einen neuen Kampf und zeigt ihn an.
+// Jeder Aufruf ist ein neuer Kampf: HP, Log und Ergebnis vom letzten Kampf werden zurückgesetzt.
+function showBattleScreen(creature) {
+  initBattleAttackButtons();
+  currentBattle = startBattle(creature);
+
+  showFighters();
+  updateBattleHp();
+  labelAttackButtons();
+  setAttackButtonsEnabled(true);
+  document.getElementById("battle-log").textContent = "";
+  hideBattleResult();
+
+  showScreen("battle");
+}
+
+// Klick-Handler für die 4 Attacken-Buttons nur einmal anmelden,
+// sonst würde ein Klick nach mehreren Kämpfen mehrfach zählen.
 function initBattleAttackButtons() {
   if (attackButtonsInitialized) {
     return;
   }
   attackButtonsInitialized = true;
-
   for (let i = 0; i < 4; i++) {
-    const btn = document.getElementById("battle-attack-" + i);
-    if (btn) {
-      btn.addEventListener("click", function () {
-        handleAttackClick(i);
-      });
-    }
+    getAttackButton(i).addEventListener("click", function () {
+      handleAttackClick(i);
+    });
   }
 }
 
-// Aktualisiert die HP-Balken und Textanzeigen beider Kontrahenten
-function updateBattleHp() {
-  const oppHpBar = document.getElementById("battle-opponent-hp-bar");
-  const oppHpText = document.getElementById("battle-opponent-hp");
-  const playerHpBar = document.getElementById("battle-player-hp-bar");
-  const playerHpText = document.getElementById("battle-player-hp");
-
-  if (oppHpBar) {
-    oppHpBar.value = currentBattle.opponentHp;
-  }
-  if (oppHpText) {
-    oppHpText.textContent = currentBattle.opponentHp;
-  }
-  if (playerHpBar) {
-    playerHpBar.value = currentBattle.playerHp;
-  }
-  if (playerHpText) {
-    playerHpText.textContent = currentBattle.playerHp;
-  }
-}
-
-// Behandelt einen Klick auf einen der 4 Attacken-Buttons (0–3)
+// Behandelt einen Klick auf einen der 4 Attacken-Buttons (0–3).
 function handleAttackClick(playerAttackIndex) {
   if (currentBattle === null || currentBattle.result !== null) {
     return;
   }
 
-  // Gegner wählt zufällig eine seiner 4 Attacken
   const opponentAttackIndex = chooseOpponentAttack();
-
-  // Runde berechnen
   const logLines = playRound(currentBattle, playerAttackIndex, opponentAttackIndex);
 
-  // HP-Anzeige aktualisieren
   updateBattleHp();
+  addLogLines(logLines);
 
-  // Kampf-Log erweitern: zuerst Gegner, dann Spieler
-  const logList = document.getElementById("battle-log");
-  if (logList) {
-    for (const lineText of logLines) {
-      const li = document.createElement("li");
-      li.textContent = lineText;
-      logList.appendChild(li);
-    }
-    logList.scrollTop = logList.scrollHeight;
-  }
-
-  // Kampfende prüfen
   if (currentBattle.result !== null) {
     endBattle();
   }
 }
 
-// Schließt den Kampf ab: Buttons sperren, Resultat anzeigen, Speichern
+// DH6–DH8: Schließt den Kampf ab: Buttons sperren, Ergebnis anzeigen, speichern.
 function endBattle() {
-  // 1. Attacken-Buttons deaktivieren
-  for (let i = 0; i < 4; i++) {
-    const btn = document.getElementById("battle-attack-" + i);
-    if (btn) {
-      btn.disabled = true;
-    }
-  }
+  setAttackButtonsEnabled(false);
+  showBattleResult(currentBattle.result);
 
-  // 2. Ergebnis am Kampfende anzeigen
-  const resultEl = document.getElementById("battle-result");
-  if (resultEl) {
-    const resultMessages = {
-      Win: "🏆 Sieg! Du hast den Kampf gewonnen (+100 Münzen).",
-      Loss: "💀 Niederlage! Du hast den Kampf verloren.",
-      Draw: "🤝 Unentschieden!"
-    };
-    resultEl.textContent = resultMessages[currentBattle.result] || currentBattle.result;
-    resultEl.dataset.result = currentBattle.result;
-    resultEl.hidden = false;
-  }
-
-  // 3. Kampf zur Historie hinzufügen
   addBattle({
     opponent: currentBattle.opponent.name,
     endedAt: new Date().toISOString(),
     result: currentBattle.result
   });
 
-  // 4. Bei Sieg Münzen gutschreiben und speichern
+  // Bei Sieg Münzen gutschreiben und speichern
   if (currentBattle.result === "Win") {
     coins = coins + WIN_COINS;
     saveCoins(coins);
-    if (typeof updatePetScreen === "function") {
-      updatePetScreen(creature, coins);
+    updatePetScreen(creature, coins);
+  }
+}
+
+
+// ===== Kleine Anzeige-Helfer =====
+
+function getAttackButton(index) {
+  return document.getElementById("battle-attack-" + index);
+}
+
+// Name, Typ und Bild von Gegner und eigenem Tier anzeigen.
+function showFighters() {
+  const opponent = currentBattle.opponent;
+  document.getElementById("battle-opponent-name").textContent = opponent.name;
+  document.getElementById("battle-opponent-type").textContent = TYPE_NAMES[opponent.type];
+  document.getElementById("battle-opponent-image").textContent = opponent.image;
+
+  const player = currentBattle.creature;
+  document.getElementById("battle-player-name").textContent = player.name;
+  document.getElementById("battle-player-type").textContent = TYPE_NAMES[player.type];
+  document.getElementById("battle-player-image").textContent = getCreatureImage(player);
+}
+
+// HP-Balken und HP-Zahlen beider Seiten aktualisieren.
+function updateBattleHp() {
+  showHp("opponent", currentBattle.opponentHp);
+  showHp("player", currentBattle.playerHp);
+}
+
+// side ist "opponent" oder "player" (passend zu den IDs in index.html).
+function showHp(side, hp) {
+  const bar = document.getElementById("battle-" + side + "-hp-bar");
+  bar.max = START_HEALTH;
+  bar.value = hp;
+  document.getElementById("battle-" + side + "-hp").textContent = hp;
+}
+
+// Beschriftet die 4 Buttons, z. B. "Feuerball (30 / 10)" oder "Feuerschild (Konter)".
+function labelAttackButtons() {
+  for (let i = 0; i < 4; i++) {
+    const attack = currentBattle.playerAttacks[i];
+    if (attack.isCounter) {
+      getAttackButton(i).textContent = attack.name + " (Konter)";
+    } else {
+      getAttackButton(i).textContent = attack.name + " (" + attack.attack + " / " + attack.defense + ")";
     }
   }
 }
 
-// Startet einen neuen Kampf und zeigt ihn an:
-// Attacken-Buttons, 2 HP-Balken, Log (zuerst Gegner, dann Spieler).
-// Am Kampfende: addBattle() und bei "Win" coins erhöhen und saveCoins().
-function showBattleScreen(creature) {
-  // Buttons genau einmal registrieren
-  initBattleAttackButtons();
-
-  // Neuen Kampf mit zufälligem Gegner und 100/100 HP initialisieren
-  currentBattle = startBattle(creature);
-
-  // Screen anzeigen
-  showScreen("battle");
-
-  // Gegner-Infos setzen
-  document.getElementById("battle-opponent-name").textContent = currentBattle.opponent.name;
-  document.getElementById("battle-opponent-type").textContent =
-    BATTLE_TYPE_NAMES[currentBattle.opponent.type] || currentBattle.opponent.type;
-  document.getElementById("battle-opponent-image").textContent =
-    currentBattle.opponent.image || "👾";
-
-  // Spieler-Infos setzen
-  document.getElementById("battle-player-name").textContent = creature.name;
-  document.getElementById("battle-player-type").textContent =
-    BATTLE_TYPE_NAMES[creature.type] || creature.type;
-  const playerImages = BATTLE_CREATURE_IMAGES[creature.type];
-  const playerImage = (playerImages && playerImages[creature.stage]) || "🐣";
-  document.getElementById("battle-player-image").textContent = playerImage;
-
-  // HP-Balken und -Werte initialisieren
-  const oppHpBar = document.getElementById("battle-opponent-hp-bar");
-  const playerHpBar = document.getElementById("battle-player-hp-bar");
-  if (oppHpBar) {
-    oppHpBar.max = START_HEALTH;
-    oppHpBar.value = currentBattle.opponentHp;
-  }
-  if (playerHpBar) {
-    playerHpBar.max = START_HEALTH;
-    playerHpBar.value = currentBattle.playerHp;
-  }
-  updateBattleHp();
-
-  // Attacken-Buttons beschriften und aktivieren
+function setAttackButtonsEnabled(enabled) {
   for (let i = 0; i < 4; i++) {
-    const btn = document.getElementById("battle-attack-" + i);
-    if (btn) {
-      btn.disabled = false;
-      const atk = currentBattle.playerAttacks[i];
-      if (atk) {
-        if (atk.isCounter) {
-          btn.textContent = atk.name + " (Konter)";
-        } else {
-          btn.textContent = atk.name + " (" + atk.attack + " / " + atk.defense + ")";
-        }
-      }
-    }
+    getAttackButton(i).disabled = !enabled;
   }
+}
 
-  // Vorheriges Log leeren
+// Hängt die Log-Zeilen einer Runde an (zuerst Gegner, dann Spieler) und scrollt nach unten.
+function addLogLines(logLines) {
   const logList = document.getElementById("battle-log");
-  if (logList) {
-    logList.textContent = "";
+  for (const text of logLines) {
+    const line = document.createElement("li");
+    line.textContent = text;
+    logList.appendChild(line);
   }
+  logList.scrollTop = logList.scrollHeight;
+}
 
-  // Vorheriges Ergebnis verstecken und leeren
-  const resultEl = document.getElementById("battle-result");
-  if (resultEl) {
-    resultEl.hidden = true;
-    resultEl.textContent = "";
-    resultEl.removeAttribute("data-result");
-  }
+// battle.css färbt das Ergebnis über data-result: Win, Loss oder Draw.
+function showBattleResult(result) {
+  const resultBox = document.getElementById("battle-result");
+  resultBox.textContent = BATTLE_RESULT_MESSAGES[result];
+  resultBox.dataset.result = result;
+  resultBox.hidden = false;
+}
+
+function hideBattleResult() {
+  const resultBox = document.getElementById("battle-result");
+  resultBox.hidden = true;
+  resultBox.textContent = "";
+  resultBox.removeAttribute("data-result");
 }

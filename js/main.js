@@ -1,6 +1,11 @@
 // Owner: Erol
 // Start des Spiels: Laden, Spieluhr, Speichern, Screen-Wechsel (PROJEKTPLAN.md, Abschnitt 6).
-// Diese Datei wird als letzte geladen.
+// Diese Datei wird als letzte geladen und startet ganz unten mit openGame().
+//
+// Ablauf:
+// 1. openGame() → loadAndStart(): data.json und battles.json laden (Spielstand-Screen)
+// 2. startGame(): Tier und Münzen übernehmen, Buttons anmelden, passenden Screen zeigen
+// 3. tick() jede echte Sekunde: Spielzeit vergehen lassen, alle 5 s speichern, Anzeige aktualisieren
 
 // Tempo der Spieluhr: so viele Spielsekunden vergehen pro echter Sekunde.
 // Wird mit dem Tempo-Button umgeschaltet und nicht gespeichert → nach dem Neuladen wieder 1.
@@ -18,6 +23,9 @@ let coins = 0;
 let gameSeconds = 0;   // Spielsekunden seit dem Schlüpfen → für decayNeeds()
 let realSeconds = 0;   // echte Sekunden seit dem Start → für das Speichern alle 5 s
 
+
+// ===== Screens =====
+
 // FR1.1, FR3.1: Zeigt genau einen Screen an und versteckt die anderen.
 // name ist "file", "egg", "pet", "battle" oder "history".
 // "file" ist der Spielstand-Screen, der beim Start angezeigt wird, bis der Spielstand geladen ist.
@@ -29,25 +37,15 @@ function showScreen(name) {
   }
 }
 
-// FR1.2, FR2.2, DH10: Lässt 1 Spielsekunde vergehen.
-function passGameSecond() {
-  // Bedürfnisse sinken erst nach dem Schlüpfen, alle 10 Spielsekunden um 1.
-  if (creature.stage !== "Egg") {
-    gameSeconds = gameSeconds + 1;
-    if (gameSeconds % DECAY_EVERY_SECONDS === 0) {
-      decayNeeds(creature);
-    }
-  }
-
-  // Countdown oder Evolutions-Timer um 1 Sekunde weiterzählen.
-  const stageChanged = updateEvolution(creature);
-  if (stageChanged) {
-    saveCreature(creature);   // DH10: neues Stadium sofort speichern
-    if (creature.stage === "Baby") {
-      showScreen("pet");      // FR1.1: Das Tier ist geschlüpft → Haustier-Screen
-    }
-  }
+// Zurück zum Haustier-Screen (aus Kampf und Historie).
+// Ein laufender Kampf wird dabei abgebrochen und nicht gespeichert (Abschnitt 2.5).
+function backToPetScreen() {
+  showScreen("pet");
+  updatePetScreen(creature, coins);
 }
+
+
+// ===== Spieluhr =====
 
 // FR2.1, DH4: Wird jede echte Sekunde aufgerufen.
 function tick() {
@@ -70,6 +68,29 @@ function tick() {
   updatePetScreen(creature, coins);
 }
 
+// FR1.2, FR2.2, DH10: Lässt 1 Spielsekunde vergehen.
+function passGameSecond() {
+  // Bedürfnisse sinken erst nach dem Schlüpfen, alle 10 Spielsekunden um 1.
+  if (creature.stage !== "Egg") {
+    gameSeconds = gameSeconds + 1;
+    if (gameSeconds % DECAY_EVERY_SECONDS === 0) {
+      decayNeeds(creature);
+    }
+  }
+
+  // Countdown oder Evolutions-Timer um 1 Sekunde weiterzählen.
+  const stageChanged = updateEvolution(creature);
+  if (stageChanged) {
+    saveCreature(creature);   // DH10: neues Stadium sofort speichern
+    if (creature.stage === "Baby") {
+      showScreen("pet");      // FR1.1: Das Tier ist geschlüpft → Haustier-Screen
+    }
+  }
+}
+
+
+// ===== Test-Leiste =====
+
 // Test-Hilfe: Schaltet das Tempo weiter (1× → 10× → 60× → wieder 1×).
 function changeSpeed() {
   const index = SPEED_STEPS.indexOf(speed);
@@ -90,38 +111,20 @@ async function restartGame() {
   location.reload();
 }
 
-// DH8: Übersetzt das gespeicherte Ergebnis ("Win", "Loss", "Draw") für die Anzeige.
-// Gespeichert bleibt immer der englische Wert.
-function formatResult(result) {
-  const resultNames = { Win: "Sieg", Loss: "Niederlage", Draw: "Unentschieden" };
-  return resultNames[result];
-}
 
-// DH6–DH8, NFR2.1: Zeigt die 20 neuesten Kämpfe an, den neuesten zuerst.
-// Eine Zeile sieht so aus: "Grimmzahn – 6.10.2026, 18:30:00 – Sieg"
-function showHistory() {
-  const battles = loadRecentBattles(20);
-  const list = document.getElementById("history-list");
+// ===== Start: Spielstand laden =====
 
-  list.textContent = "";   // alte Zeilen entfernen
-  for (const battle of battles) {
-    const line = document.createElement("li");
-    const endedAt = new Date(battle.endedAt).toLocaleString("de-AT");
-    line.textContent = battle.opponent + " – " + endedAt + " – " + formatResult(battle.result);
-    line.dataset.result = battle.result;   // history.css färbt die Zeile: Win grün, Loss rot, Draw grau
-    list.appendChild(line);
+// DH11: Wird beim Öffnen der Seite aufgerufen. Erst wenn der Spielstand geladen ist,
+// startet startGame() das Spiel. Vorher ist nur der Spielstand-Screen sichtbar.
+function openGame() {
+  if (!canUseDataFile()) {
+    showFileMessage("Dieser Browser kann keine Dateien speichern. Bitte Chrome oder Edge verwenden.", true);
+    return;
   }
-
-  // Ohne Kämpfe: Hinweis statt leerer Liste
-  document.getElementById("history-empty").hidden = battles.length > 0;
-  showScreen("history");
-}
-
-// Schreibt einen Text in den Spielstand-Screen. isError = true färbt den Kasten rot (history.css).
-function showFileMessage(text, isError) {
-  const message = document.getElementById("file-message");
-  message.textContent = text;
-  message.dataset.error = isError;
+  document.getElementById("file-button").addEventListener("click", function () {
+    loadAndStart(true);
+  });
+  loadAndStart(false);
 }
 
 // FR2.1, DH11: Lädt data.json und battles.json und startet danach das Spiel.
@@ -154,18 +157,15 @@ async function loadAndStart(askUser) {
   }
 }
 
-// DH11: Wird beim Öffnen der Seite aufgerufen. Erst wenn der Spielstand geladen ist,
-// startet startGame() das Spiel. Vorher ist nur der Spielstand-Screen sichtbar.
-function openGame() {
-  if (!canUseDataFile()) {
-    showFileMessage("Dieser Browser kann keine Dateien speichern. Bitte Chrome oder Edge verwenden.", true);
-    return;
-  }
-  document.getElementById("file-button").addEventListener("click", function () {
-    loadAndStart(true);
-  });
-  loadAndStart(false);
+// Schreibt einen Text in den Spielstand-Screen. isError = true färbt den Kasten rot (history.css).
+function showFileMessage(text, isError) {
+  const message = document.getElementById("file-message");
+  message.textContent = text;
+  message.dataset.error = isError;
 }
+
+
+// ===== Start: Spiel beginnen =====
 
 // FR2.1, DH11: Wird erst aufgerufen, wenn der Spielstand geladen ist (siehe loadAndStart).
 // Holt Tier und Münzen aus dem Spielstand und zeigt danach den passenden Screen an.
@@ -173,26 +173,12 @@ function startGame() {
   creature = loadCreature();
   coins = loadCoins();
 
-  // Victorias Screens vorbereiten (Button-Klicks). Nur einmal aufrufen,
-  // sonst würde ein Klick mehrfach zählen.
-  showEggScreen();
-  showPetScreen();
-
-  // DH6–DH8: Kampf-Historie öffnen und wieder zurück zum Haustier-Screen
-  document.getElementById("button-history").addEventListener("click", showHistory);
-  document.getElementById("history-back-button").addEventListener("click", function () {
-    showScreen("pet");
-    updatePetScreen(creature, coins);
-  });
-
-  // FR3.1: Vom Kampf-Screen zurück zum Haustier-Screen.
-  // Ein laufender Kampf wird dabei abgebrochen und nicht gespeichert (Abschnitt 2.5).
-  document.getElementById("battle-back-button").addEventListener("click", function () {
-    showScreen("pet");
-    updatePetScreen(creature, coins);
-  });
-
-  // Test-Hilfe: Tempo-Button
+  // Buttons der Screens anmelden. Nur einmal aufrufen, sonst würde ein Klick mehrfach zählen.
+  showEggScreen();   // petScreen.js
+  showPetScreen();   // petScreen.js
+  document.getElementById("button-history").addEventListener("click", showHistory);   // historyScreen.js
+  document.getElementById("history-back-button").addEventListener("click", backToPetScreen);
+  document.getElementById("battle-back-button").addEventListener("click", backToPetScreen);
   document.getElementById("button-speed").addEventListener("click", changeSpeed);
   document.getElementById("button-restart").addEventListener("click", restartGame);
 

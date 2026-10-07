@@ -35,6 +35,43 @@ Der Spielstand steht in zwei Dateien im Projektordner. Man kann beide mit jedem 
 
 `data.json` und `battles.json` kommen nie ins Repo (stehen in `.gitignore`). Jede Person hat ihren eigenen Spielstand.
 
+## Überblick über den Code
+
+```
+index.html      alle Screens als HTML        css/      Design (ein Stylesheet pro Person)
+js/             der ganze Code               tests/    tests.html + eine Testdatei pro Person
+docs/           Abgaben und Unterlagen (PDF, docx), kein Code
+```
+
+Der Code in `js/` hat vier Arten von Dateien:
+
+| Art | Dateien | Was drin ist |
+|---|---|---|
+| **Logik** | `pet.js`, `evolution.js`, `battle.js` | Nur Rechnungen und Tabellen. Kein HTML, kein Speichern. Deshalb kann `tests.html` sie direkt prüfen. |
+| **Speichern** | `storage.js` | Liest und schreibt `data.json` und `battles.json` |
+| **Anzeige** | `petScreen.js`, `battleScreen.js`, `historyScreen.js` | Eine Datei pro Screen: füllt das HTML und reagiert auf Button-Klicks |
+| **Start** | `main.js` | Lädt den Spielstand, startet die Spieluhr, wechselt die Screens. Wird als letzte geladen. |
+
+**So hängt alles zusammen:** Es gibt kein `import`. `index.html` lädt alle Dateien nacheinander mit `<script>`, danach kennt jede Datei die Funktionen der anderen. Den Spielstand halten die zwei Variablen `creature` und `coins` in `main.js`.
+
+**Was passiert wann?**
+- **Beim Öffnen:** `main.js` lädt den Spielstand (`openDataFolder()` in `storage.js`) und ruft danach `startGame()` auf. Diese Funktion meldet alle Buttons an und zeigt den Ei- oder den Haustier-Screen.
+- **Jede Sekunde:** `tick()` in `main.js` → `decayNeeds()` (pet.js) und `updateEvolution()` (evolution.js) → alle 5 s `saveCreature()` → `updatePetScreen()`.
+- **Klick auf Pflege:** `petScreen.js` → `careAction()` → `saveCreature()` → `updatePetScreen()`.
+- **Kampf:** `showBattleScreen()` → pro Klick `playRound()` (battle.js) → am Ende `addBattle()` und bei Sieg `saveCoins()`.
+
+**Wo finde ich …?**
+
+| Ich suche … | Datei |
+|---|---|
+| Startwerte eines neuen Tiers, Typnamen, Tierbilder | `js/pet.js` |
+| Schwellen und Zeiten für die Evolution | `js/evolution.js` (Konstanten oben) |
+| Attacken, Gegner, Schadensformel | `js/battle.js` |
+| Tempo, Speichern alle 5 s, Screen-Wechsel | `js/main.js` |
+| eine ID wie `battle-log` | `index.html` |
+| alle Funktionsnamen und wer sie verwendet | `PROJEKTPLAN.md`, Abschnitt 5 |
+| Spielregeln (Zahlen, Formeln) | `PROJEKTPLAN.md`, Abschnitt 2 |
+
 ## Git (jedes Mal)
 
 1. `git pull`
