@@ -71,6 +71,7 @@ function showPetScreen() {
 
 // FR1.1, FR1.2, FR2.2: Schreibt die aktuellen Werte in den Ei- und Haustier-Screen:
 // Countdown, Name, Typ, Stadium, Münzen, Bild, Happiness, Evolutions-Fortschritt, 4 Balken.
+// Ein Bedürfnis unter NEED_LOW bekommt data-low="true", style.css färbt die Zeile dann als Warnung.
 // Wird jede Sekunde von main.js und nach jedem Klick aufgerufen.
 function updatePetScreen(creature, coins) {
   // FR1.1: CSS verwendet Typ und Stadium für die passende Farbe.
@@ -97,6 +98,7 @@ function updatePetScreen(creature, coins) {
     bar.value = creature.needs[need];
     bar.setAttribute("aria-label", need);
     document.getElementById("value-" + need).textContent = creature.needs[need];
+    bar.parentElement.dataset.low = creature.needs[need] < NEED_LOW;
   }
 
   // FR3.1: Der Kampf-Button erscheint erst im letzten Stadium.

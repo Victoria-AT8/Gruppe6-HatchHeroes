@@ -1,6 +1,6 @@
 /* Owner: Erol
    Spielstand-Screen, Test-Leiste und Historie-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
-   Farben wie --muted und --ink kommen aus style.css. */
+   Farben wie --muted, --ink, --good und --bad kommen aus style.css. */
 
 /* DH11: Spielstand-Screen – erscheint beim Start, bis data.json geladen ist */
 #screen-file { text-align: center; }
@@ -8,30 +8,29 @@
   margin: 0 0 20px;
   padding: 24px;
   color: var(--muted);
-  background: #f8f7fb;
-  border: 2px solid #eeebf4;
+  background: var(--surface);
+  border: 2px solid var(--line);
   border-radius: 20px;
 }
 /* Fehler (z. B. falscher Browser, data.json kaputt): roter Kasten wie ein verlorener Kampf.
    main.js setzt dafür data-error="true". */
-#file-message[data-error="true"] { color: #8c1f22; background: #fcefef; border-color: #f0caca; }
+#file-message[data-error="true"] { color: #8c1f22; background: var(--bad-tint); border-color: #f0caca; }
 /* Ordner wählen ist hier die einzige Aktion → breiter Hauptbutton wie "Ei ausbrüten" */
-#file-button { display: block; width: 100%; word-spacing: 4px; }
+#file-button { display: block; width: 100%; }
 
-/* Test-Leiste: klein und dezent über der Karte, damit sie nicht wie ein Spiel-Button wirkt */
+/* Test-Leiste: klein und dezent neben dem Logo, damit sie nicht wie ein Spiel-Button wirkt */
 #test-bar {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
-  max-width: 640px;
-  margin: 0 auto 12px;
 }
 /* Test-Buttons bewusst flach (ohne Tastenkante), damit sie nicht wie Spiel-Buttons wirken */
 #test-bar button {
   min-height: 36px;
-  padding: 6px 12px;
-  font-family: "Segoe UI", system-ui, Arial, sans-serif;
+  padding: 6px 14px;
+  font-family: var(--font-text);
   font-size: 14px;
+  font-weight: 500;
   background: #ffffffcc;
   color: var(--muted);
   border-color: #e2dce9;
@@ -39,11 +38,16 @@
   box-shadow: none;
 }
 #test-bar button:active { transform: none; }
-#test-bar button:hover { background: #fff; color: var(--ink); }
+#speed-value { font-variant-numeric: tabular-nums; }
 /* Roter Rand: dieser Button löscht den Spielstand */
 #test-bar #button-restart { color: #a32020; border-color: #ecc8c8; }
+@media (hover: hover) {
+  #test-bar button:hover { background: #fff; color: var(--ink); }
+  #test-bar #button-restart:hover { background: var(--bad-tint); color: #8c1f22; }
+}
 
-/* DH6–DH8: Jeder Kampf ist eine eigene Zeile, die Farbe zeigt das Ergebnis */
+/* DH6–DH8: Jeder Kampf ist eine eigene Zeile: Gegner, Datum und Ergebnis nebeneinander.
+   Die Farbe zeigt das Ergebnis (historyScreen.js setzt data-result). */
 #history-list {
   display: grid;
   gap: 8px;
@@ -52,26 +56,61 @@
   list-style: none;
 }
 #history-list li {
-  padding: 12px 16px;
-  background: #f8f7fb;
-  border: 2px solid #eeebf4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 10px 10px 10px 16px;
+  background: var(--surface);
+  border: 2px solid var(--line);
   border-left: 6px solid #8a8597;
   border-radius: 14px;
 }
-#history-list li[data-result="Win"] { background: #eef8f0; border-color: #d3ecd9; border-left-color: #2f8a4a; }
-#history-list li[data-result="Loss"] { background: #fcefef; border-color: #f0d3d3; border-left-color: #b42f32; }
+#history-list strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-toy);
+  font-weight: 600;
+  font-size: 17px;
+}
+#history-list time {
+  color: var(--muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+/* Ergebnis als Schild am Zeilenende */
+#history-list li > span {
+  min-width: 128px;   /* so breit wie "Unentschieden", damit die Daten untereinander stehen */
+  padding: 3px 12px;
+  text-align: center;
+  color: #4a455a;
+  background: #ebe8f1;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+}
+#history-list li[data-result="Win"] { border-left-color: var(--good); }
+#history-list li[data-result="Win"] > span { color: #1e6b37; background: #d9f0df; }
+#history-list li[data-result="Loss"] { border-left-color: var(--bad); }
+#history-list li[data-result="Loss"] > span { color: #8c1f22; background: #f7dcdc; }
 
 #history-empty {
   margin: 0 0 20px;
   padding: 24px;
   text-align: center;
   color: var(--muted);
-  background: #f8f7fb;
-  border: 2px solid #eeebf4;
+  background: var(--surface);
+  border: 2px solid var(--line);
   border-radius: 20px;
 }
 
-/* Zurück ist ein Nebenbutton, wie die Kampf-Historie im Haustier-Screen */
-#history-back-button { background: #f5f3f9; color: #565064; border-color: #e2dce9; box-shadow: 0 4px 0 #e2dce9; }
-#history-back-button:hover { background: #eae5f3; }
-#history-back-button:active { box-shadow: 0 1px 0 #e2dce9; }
+/* Zurück: breiter Nebenbutton wie im Kampf-Screen (Farben aus .button-secondary in style.css) */
+#history-back-button { display: block; width: 100%; }
+
+/* Handy: Datum unter den Gegner, Ergebnis rechts daneben */
+@media (max-width: 440px) {
+  #history-list li { grid-template-columns: minmax(0, 1fr) auto; }
+  #history-list time { grid-row: 2; }
+  #history-list li > span { grid-row: 1 / 3; grid-column: 2; min-width: 0; }
+}

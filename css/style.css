@@ -1,47 +1,67 @@
-﻿/* Owner: Victoria – Design für Ei und Haustier (FR1.1, FR1.2, NFR1.1). */
-
-/* Schriften: Fredoka (rund, verspielt) für Überschriften und Buttons, Pixelify Sans für
-   Zahlen wie auf einem LCD-Display. Ohne Internet nimmt der Browser die Ersatzschrift. */
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Pixelify+Sans:wght@500;600&display=swap");
+/* Owner: Victoria – Design für Ei und Haustier (FR1.1, FR1.2, NFR1.1).
+   Dazu die Grundregeln für alle Screens: Farben, Schriften, Gehäuse, Buttons, Gerät mit Display.
+   Die Schriften (Fredoka, Pixelify Sans) lädt index.html. */
 
 /* FR1.1, FR3.1: hidden hat Vorrang vor allen Layout-Regeln. */
 [hidden] { display: none !important; }
 
 * { box-sizing: border-box; }
 :root {
+  /* Farben des Typs (werden unten pro Typ überschrieben) */
   --accent: #6945b5;
   --accent-dark: #51328e;
   --tint: #f1eaff;
   --glow: #ded0f8;
+  /* neutrale Farben */
   --ink: #29263c;
   --muted: #686479;
+  --surface: #f8f7fb;
+  --line: #e9e5f0;
+  /* Ergebnis- und Warnfarben (auch in battle.css und history.css) */
+  --good: #2f8a4a;
+  --good-tint: #eef8f0;
+  --bad: #b42f32;
+  --bad-tint: #fcefef;
   --font-toy: "Fredoka", "Segoe UI", Arial, sans-serif;
   --font-lcd: "Pixelify Sans", "Consolas", monospace;
+  --font-text: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
 }
 body {
   margin: 0;
-  padding: 28px 18px 48px;
+  padding: 24px 18px 48px;
   color: var(--ink);
   /* ruhiges Punkteraster wie eine Spielmatte */
   background-color: #eef0f7;
   background-image: radial-gradient(#d6dae8 1.2px, transparent 1.4px);
   background-size: 22px 22px;
-  font-family: "Segoe UI", system-ui, Arial, sans-serif;
+  font-family: var(--font-text);
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Kopfzeile: Logo links, Test-Leiste rechts (Test-Leiste: history.css) */
+#page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  max-width: 640px;
+  margin: 0 auto 22px;
 }
 /* Logo: dicke, runde Schrift mit festem Schatten wie ein Aufkleber */
-body > h1 {
-  margin: 0 0 20px;
-  text-align: center;
+#page-header h1 {
+  margin: 0;
   font-family: var(--font-toy);
   font-weight: 700;
-  font-size: clamp(36px, 7vw, 54px);
+  font-size: clamp(34px, 6vw, 44px);
   letter-spacing: -0.5px;
   line-height: 1.1;
   color: #443270;
-  text-shadow: 0 4px 0 #d3cbee;
+  text-shadow: 0 3px 0 #d3cbee;
 }
+
 /* Jede Karte ist das Gehäuse eines Spielzeugs: dicker Rand in der Typfarbe und
    ein fester Schatten nach unten (wie Plastik), statt eines weichen grauen Schattens. */
 section {
@@ -62,6 +82,7 @@ h2 {
   line-height: 1.2;
 }
 button, input { font: inherit; }
+
 /* Buttons wie Gummitasten: Sie haben unten eine sichtbare Kante (box-shadow)
    und drücken sich beim Klicken ein (:active). */
 button {
@@ -74,15 +95,34 @@ button {
   font-family: var(--font-toy);
   font-weight: 600;
   font-size: 17px;
+  line-height: 1.25;
   cursor: pointer;
   box-shadow: 0 4px 0 var(--accent-dark);
-  transition: background 120ms, transform 80ms, box-shadow 80ms;
+  transition: background-color 120ms, transform 80ms, box-shadow 80ms;
+  touch-action: manipulation;   /* kein Zoom bei schnellem Doppeltippen auf dem Handy */
 }
-button:hover { background: var(--accent-dark); }
-button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-dark); }
+button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-dark); }
+button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 button:focus-visible, input:focus-visible {
   outline: 3px solid #a86100;
   outline-offset: 4px;
+}
+/* Emoji vor dem Text (in index.html mit aria-hidden, damit Screenreader es nicht vorlesen) */
+.icon { margin-right: 0.5em; }
+
+/* Nebenbutton (Kampf-Historie, Zurück): grau, damit die Hauptaktion auffällt */
+.button-secondary {
+  background: #f5f3f9;
+  color: #565064;
+  border-color: #e2dce9;
+  box-shadow: 0 4px 0 #e2dce9;
+}
+.button-secondary:active:not(:disabled) { box-shadow: 0 1px 0 #e2dce9; }
+
+/* Hover nur auf Geräten mit Maus, sonst bleibt die Farbe auf dem Handy nach dem Tippen hängen */
+@media (hover: hover) {
+  button:hover:not(:disabled) { background: var(--accent-dark); }
+  .button-secondary:hover:not(:disabled) { background: #eae5f3; color: var(--ink); }
 }
 
 /* FR1.1: Vier Typen, vier Farbwelten; die Spielwerte bleiben unverändert. */
@@ -90,114 +130,230 @@ button:focus-visible, input:focus-visible {
 [data-type="Water"] { --accent: #176b9b; --accent-dark: #105277; --tint: #eaf6ff; --glow: #bce3fa; }
 [data-type="Earth"] { --accent: #397247; --accent-dark: #285535; --tint: #eff7e9; --glow: #d2e7bd; }
 [data-type="Wind"] { --accent: #7350ad; --accent-dark: #57398a; --tint: #f4eeff; --glow: #dfd0fa; }
-#screen-egg h2 { text-align: center; }
-#egg-name-input {
-  display: block;
-  width: 100%;
-  margin-top: 6px;
-  padding: 12px 14px;
-  color: var(--ink);
-  background: #faf9fc;
-  border: 1px solid #c9c3d6;
-  border-radius: 10px;
-}
-#egg-name-input[aria-invalid="true"] { border-color: #b42f32; }
-#egg-form > label:first-child, #egg-form > p { font-weight: 600; }
-#egg-form label:has(input[type="radio"]) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 5px 8px 0;
-  padding: 10px 12px;
-  border: 1px solid #ded9e7;
-  border-radius: 10px;
-  cursor: pointer;
-}
-#egg-form label:has(input:checked) {
-  color: var(--accent-dark);
-  background: var(--tint);
-  border-color: var(--accent);
-}
-input[type="radio"] { accent-color: var(--accent); }
-#egg-start-button { display: block; width: 100%; margin-top: 18px; }
-#egg-name-error { color: #a32020; font-size: 14px; }
-#egg-countdown-box {
-  margin: 22px 0 0;
-  padding: 18px;
-  text-align: center;
-  background: var(--tint);
-  border-radius: 14px;
-}
-#egg-countdown { font-family: var(--font-lcd); font-size: 30px; font-weight: 600; color: var(--accent-dark); }
 
-/* FR1.1: Ei und Tier stehen auf einer Bühne in ihrer Typfarbe. */
-#egg-image, #pet-creature {
+
+/* ===== Das Gerät: Rahmen in der Typfarbe mit Display, wie bei einem Tamagotchi ===== */
+/* FR1.1: Ei und Tier stehen auf dem Display, darunter LCD-Anzeigen auf dem Rahmen. */
+.device {
+  margin: 18px 0 24px;
+  padding: 12px;
+  background: var(--accent);
+  border-radius: 28px;
+  box-shadow: inset 0 -6px 0 var(--accent-dark);
+}
+.device-screen {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 100%;
   height: 210px;
-  margin: 18px 0 24px;
-  /* das "Display" des Spielzeugs: leicht nach innen gewölbt */
-  border: 2px solid var(--glow);
-  border-radius: 24px;
-  background: radial-gradient(circle at 50% 45%, white 0%, var(--tint) 65%);
-  box-shadow: inset 0 4px 0 #00000008;
-  font-size: 88px;
-  line-height: 1;
+  overflow: hidden;
+  border: 2px solid var(--accent-dark);
+  border-radius: 18px;
+  /* feines Pixelraster über einem hellen Display in der Typfarbe */
+  background:
+    linear-gradient(color-mix(in srgb, var(--accent) 6%, transparent) 1px, transparent 1px) 0 0 / 100% 6px,
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 6%, transparent) 1px, transparent 1px) 0 0 / 6px 100%,
+    radial-gradient(circle at 50% 42%, white 0%, var(--tint) 70%);
+  box-shadow: inset 0 4px 0 #00000012;
 }
-#egg-image::after, #pet-creature::after {
+/* Schatten unter dem Tier */
+.device-screen::after {
   content: "";
   position: absolute;
-  bottom: 26px;
-  width: 100px;
+  bottom: 28px;
+  width: 104px;
   height: 12px;
   background: var(--glow);
   border-radius: 50%;
 }
-#egg-image { animation: egg-rock 3s ease-in-out infinite; }
-#pet-creature { animation: pet-breathe 3s ease-in-out infinite; }
-#screen-pet[data-stage="Baby"] #pet-creature { font-size: 72px; }
-#screen-pet[data-stage="First Evolution"] #pet-creature { font-size: 92px; }
-#screen-pet[data-stage="Second Evolution"] #pet-creature {
-  font-size: 108px;
-  border: 2px solid var(--accent);
-  box-shadow: inset 0 0 28px var(--glow), inset 0 4px 0 #00000008;
+#egg-image, #pet-creature {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 18px;
+  font-size: 88px;
+  line-height: 1;
 }
+/* Anzeigen auf dem Rahmen: weiße Beschriftung, Zahlen in Pixel-Schrift wie auf einem LCD */
+.device-readouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.device-readout {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;   /* Zahlen stehen auf einer Linie, auch wenn eine Beschriftung umbricht */
+  margin: 0;
+  padding: 10px 8px 4px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+}
+.lcd {
+  font-family: var(--font-lcd);
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Animation nur für das Tier selbst, das Display bleibt ruhig */
+#egg-image { transform-origin: 50% 90%; animation: egg-rock 3s ease-in-out infinite; }
+/* Das Ei wackelt schneller, sobald es ausgebrütet wird */
+#screen-egg:has(#egg-countdown-box:not([hidden])) #egg-image { animation-duration: 0.9s; }
+#pet-creature { animation: pet-breathe 3s ease-in-out infinite; }
 @keyframes egg-rock {
-  0%, 100% { transform: rotate(-1deg); }
-  50% { transform: rotate(1deg); }
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
 }
 @keyframes pet-breathe {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-5px); }
 }
-#screen-pet > p { color: var(--muted); font-size: 14px; }
-#pet-type, #pet-stage, #pet-coins {
-  display: inline-block;
-  padding: 3px 10px;
-  margin: 3px 0;
-  background: var(--tint);
+
+
+/* ===== Ei-Screen ===== */
+#screen-egg h2 { text-align: center; }
+/* Während das Ei ausgebrütet wird, ist das Formular weg → kein leerer Platz unter dem Gerät */
+#screen-egg .device:has(+ #egg-form[hidden]) { margin-bottom: 0; }
+#egg-countdown-box {
+  flex-direction: row;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 16px;
+}
+#egg-form > label, #egg-types legend {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+#egg-name-input {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid #ddd8e6;
+  border-radius: 12px;
+}
+#egg-name-input::placeholder { color: #8f8a9c; }
+#egg-name-input:focus { border-color: var(--accent); background: white; }
+#egg-name-input[aria-invalid="true"] { border-color: var(--bad); }
+#egg-name-error { margin: 6px 0 0; color: #a32020; font-size: 14px; }
+
+/* Typ-Wahl: vier Kacheln, jede in ihrer eigenen Typfarbe (data-type in index.html) */
+#egg-types {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+}
+#egg-types legend { padding: 0; }
+#egg-types label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  padding: 12px 6px 10px;
+  color: var(--muted);
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  font-family: var(--font-toy);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms, background-color 120ms;
+}
+/* Der Radio-Button ist unsichtbar, bleibt aber mit Tastatur und Screenreader bedienbar */
+#egg-types input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+#egg-types .type-icon { font-size: 28px; line-height: 1.2; }
+#egg-types label:has(input:checked) {
   color: var(--accent-dark);
+  background: var(--tint);
+  border-color: var(--accent);
+  box-shadow: 0 3px 0 var(--accent);
+}
+#egg-types label:has(input:focus-visible) { outline: 3px solid #a86100; outline-offset: 3px; }
+@media (hover: hover) {
+  #egg-types label:hover { border-color: var(--glow); }
+  #egg-types label:has(input:checked):hover { border-color: var(--accent); }
+}
+#egg-start-button { display: block; width: 100%; margin-top: 22px; }
+
+
+/* ===== Haustier-Screen ===== */
+/* Typ, Stadium und Münzen als kleine Schilder */
+#pet-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#pet-info li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 3px 3px 12px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 14px;
+}
+#pet-info span {
+  padding: 2px 10px;
+  color: var(--accent-dark);
+  background: var(--tint);
   border-radius: 999px;
   font-weight: 600;
 }
-/* Zahlen in Pixel-Schrift, wie auf dem LCD eines Tamagotchis */
-#pet-coins, #pet-happiness, #pet-evolution-progress, #pet-needs span { font-family: var(--font-lcd); }
-#pet-happiness { color: var(--accent-dark); font-size: 28px; font-weight: 600; }
-#pet-evolution-progress { color: var(--ink); font-weight: 600; font-size: 17px; }
+#pet-coins { font-family: var(--font-lcd); }
+
+/* Größe des Tiers wächst mit dem Stadium */
+#screen-pet[data-stage="Baby"] #pet-creature { font-size: 72px; }
+#screen-pet[data-stage="First Evolution"] #pet-creature { font-size: 92px; }
+#screen-pet[data-stage="Second Evolution"] #pet-creature { font-size: 108px; }
+#screen-pet[data-stage="Second Evolution"] .device-screen {
+  box-shadow: inset 0 0 36px var(--glow), inset 0 4px 0 #00000012;
+}
 
 /* FR1.2, NFR1.1: Werte und Pflege ohne zusätzliche Menüs erreichbar. */
-#pet-needs { margin: 22px 0; padding: 14px 18px; background: #f8f7fb; border: 2px solid #eeebf4; border-radius: 20px; }
+#pet-needs {
+  margin: 0 0 22px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 20px;
+}
 #pet-needs p {
   display: grid;
-  grid-template-columns: 125px minmax(0, 1fr) 32px;
-  gap: 10px;
+  grid-template-columns: 120px minmax(0, 1fr) 40px;
+  gap: 12px;
   align-items: center;
+  margin: 0;
+  padding: 7px 8px;
+  border-radius: 12px;
   font-size: 14px;
 }
-#pet-needs span { text-align: right; font-weight: 600; font-size: 16px; }
+#pet-needs span {
+  text-align: right;
+  font-family: var(--font-lcd);
+  font-weight: 600;
+  font-size: 17px;
+}
 #pet-needs progress {
   width: 100%;
   height: 14px;
@@ -208,38 +364,60 @@ input[type="radio"] { accent-color: var(--accent); }
   accent-color: var(--accent);
 }
 #pet-needs progress::-webkit-progress-bar { background: #e6e1ed; border-radius: 20px; }
-#pet-needs progress::-webkit-progress-value { background: var(--accent); border-radius: 20px; }
+#pet-needs progress::-webkit-progress-value { background: var(--accent); border-radius: 20px; transition: width 300ms ease; }
 #pet-needs progress::-moz-progress-bar { background: var(--accent); border-radius: 20px; }
-#pet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-#pet-actions { gap: 12px; }
-/* Abstand zwischen Emoji und Text (Fredoka hat ein sehr schmales Leerzeichen) */
-#pet-actions button, #pet-menu button { word-spacing: 4px; }
+/* Bedürfnis unter 25 (petScreen.js setzt data-low): Zeile wird rot, damit man sieht, was fehlt */
+#pet-needs p[data-low="true"] { color: #8c1f22; background: var(--bad-tint); font-weight: 600; }
+#pet-needs p[data-low="true"] progress { accent-color: var(--bad); }
+#pet-needs p[data-low="true"] progress::-webkit-progress-value { background: var(--bad); }
+#pet-needs p[data-low="true"] progress::-moz-progress-bar { background: var(--bad); }
+
 /* Pflege-Tasten: hell in der Typfarbe, Kante in der Glow-Farbe */
+#pet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 #pet-actions button {
   background: var(--tint);
   color: var(--accent-dark);
   border-color: var(--glow);
   box-shadow: 0 4px 0 var(--glow);
 }
-#pet-actions button:hover { background: var(--glow); }
 #pet-actions button:active { box-shadow: 0 1px 0 var(--glow); }
-#pet-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 2px dashed #eae6f0; }
-/* Nebenbutton: grau, damit "Kämpfen" die Hauptaktion bleibt */
-#button-history { background: #f5f3f9; color: #565064; border-color: #e2dce9; box-shadow: 0 4px 0 #e2dce9; }
-#button-history:hover { background: #eae5f3; }
-#button-history:active { box-shadow: 0 1px 0 #e2dce9; }
+@media (hover: hover) {
+  #pet-actions button:hover { background: var(--glow); }
+}
+#pet-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px dashed var(--line);
+}
+#pet-menu button { flex: 1 1 180px; }
+
+
+/* ===== Handy ===== */
 @media (max-width: 440px) {
-  body { padding: 18px 12px 32px; }
+  body { padding: 16px 12px 32px; }
+  #page-header { justify-content: center; margin-bottom: 16px; }
+  #page-header h1 { width: 100%; text-align: center; }
   section { padding: 20px 16px; border-radius: 24px; }
-  #egg-form label:has(input[type="radio"]) { width: calc(50% - 8px); }
-  #pet-needs { padding: 10px 12px; }
-  #pet-needs p { grid-template-columns: 1fr 32px; gap: 6px; }
+  h2 { font-size: 26px; }
+  .device { padding: 10px; border-radius: 24px; }
+  .device-screen { height: 180px; }
+  .lcd { font-size: 26px; }
+  #pet-info { gap: 6px; }
+  #pet-info li { padding-left: 10px; font-size: 13px; }
+  #pet-info span { padding: 1px 8px; }
+  #egg-types { grid-template-columns: 1fr 1fr; }
+  #pet-needs { padding: 8px; }
+  #pet-needs p { grid-template-columns: 1fr 40px; gap: 4px 8px; }
   #pet-needs progress { grid-row: 2; grid-column: 1 / 3; }
+  #pet-actions { gap: 10px; }
   #pet-actions button { padding: 12px 8px; }
-  #pet-menu button { flex: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   #egg-image, #pet-creature { animation: none; }
-  button { transition: none; }
-  button:active { transform: none; }
+  button, #egg-types label { transition: none; }
+  button:active:not(:disabled) { transform: none; }
+  #pet-needs progress::-webkit-progress-value { transition: none; }
 }

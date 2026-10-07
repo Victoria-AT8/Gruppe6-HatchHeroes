@@ -7,6 +7,7 @@ const CARE_AMOUNT = 25;       // so viel bringt eine Pflege-Aktion (A)
 const NEED_MAX = 100;
 const NEED_MIN = 0;
 const NEED_START = 50;        // jedes Bedürfnis eines neuen Tiers
+const NEED_LOW = 25;          // darunter warnt der Haustier-Screen (nur Anzeige, keine Spielregel)
 
 // Die 4 Bedürfnisse, in dieser Reihenfolge überall angezeigt.
 const NEED_NAMES = ["fullness", "cleanliness", "entertainment", "rest"];

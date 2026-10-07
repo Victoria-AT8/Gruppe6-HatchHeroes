@@ -4,21 +4,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Brüte ein Ei aus, pflege dein Tier und kämpfe gegen Gegner.">
+  <meta name="theme-color" content="#eef0f7">
   <title>HatchHeroes</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥚</text></svg>">
+  <!-- Schriften: Fredoka (rund) für Überschriften und Buttons, Pixelify Sans für LCD-Zahlen.
+       Ohne Internet nimmt der Browser die Ersatzschrift aus style.css. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Pixelify+Sans:wght@500;600&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/battle.css">
   <link rel="stylesheet" href="css/history.css">
 </head>
 <body>
-  <h1>HatchHeroes</h1>
+  <header id="page-header">
+    <h1>HatchHeroes</h1>
 
-  <!-- Test-Leiste (Erol): steht außerhalb der Screens, Design in css/history.css -->
-  <div id="test-bar">
-    <!-- Test-Button: Spielzeit schneller laufen lassen -->
-    <button id="button-speed">⏩ Tempo: 1×</button>
-    <!-- Neu starten: löscht den Spielstand und lädt die Seite neu -->
-    <button id="button-restart">🔄 Neu starten</button>
-  </div>
+    <!-- Test-Leiste (Erol): steht außerhalb der Screens, Design in css/history.css.
+         Bleibt versteckt, bis der Spielstand geladen ist (startGame() in main.js zeigt sie an),
+         weil die Buttons vorher noch nichts tun. -->
+    <div id="test-bar" hidden>
+      <!-- Test-Button: Spielzeit schneller laufen lassen -->
+      <button id="button-speed"><span class="icon" aria-hidden="true">⏩</span>Tempo: <span id="speed-value">1</span>×</button>
+      <!-- Neu starten: löscht den Spielstand und lädt die Seite neu -->
+      <button id="button-restart"><span class="icon" aria-hidden="true">🔄</span>Neu starten</button>
+    </div>
+  </header>
 
   <!-- ===== Spielstand-Screen (Erol): data.json laden, bevor das Spiel startet (DH11) =====
        Ist als einziger Screen von Anfang an sichtbar. main.js schreibt den Text in file-message
@@ -26,7 +38,7 @@
   <section id="screen-file">
     <h2>Spielstand</h2>
     <p id="file-message">Spielstand wird geladen …</p>
-    <button id="file-button" hidden>📂 Spielordner wählen</button>
+    <button id="file-button" hidden><span class="icon" aria-hidden="true">📂</span>Spielordner wählen</button>
   </section>
 
   <!-- Die 4 Spiel-Screens sind zuerst versteckt. main.js zeigt erst nach dem Laden einen davon an. -->
@@ -34,38 +46,51 @@
   <!-- ===== Ei-Screen (Victoria) ===== -->
   <section id="screen-egg" hidden>
     <h2>Dein Ei</h2>
-    <div id="egg-image">🥚</div>
+
+    <!-- Das "Gerät": Rahmen in der Typfarbe, darin das Display mit dem Ei (Design in style.css) -->
+    <div class="device">
+      <div class="device-screen"><div id="egg-image" role="img" aria-label="Ei">🥚</div></div>
+      <p id="egg-countdown-box" class="device-readout" hidden>
+        Schlüpft in <span id="egg-countdown" class="lcd">60</span> Sekunden …
+      </p>
+    </div>
 
     <div id="egg-form">
-      <label for="egg-name-input">Name:</label>
-      <input type="text" id="egg-name-input" maxlength="20">
+      <label for="egg-name-input">Name</label>
+      <input type="text" id="egg-name-input" maxlength="20" autocomplete="off" placeholder="z. B. Flammi"
+             aria-describedby="egg-name-error">
       <p id="egg-name-error" hidden>Bitte gib einen Namen mit 1 bis 20 Zeichen ein.</p>
 
-      <p>Typ:</p>
-      <label><input type="radio" name="egg-type" value="Fire" checked> 🔥 Feuer</label>
-      <label><input type="radio" name="egg-type" value="Water"> 💧 Wasser</label>
-      <label><input type="radio" name="egg-type" value="Earth"> 🪨 Erde</label>
-      <label><input type="radio" name="egg-type" value="Wind"> 🌪️ Wind</label>
+      <!-- data-type färbt jede Kachel in ihrer eigenen Typfarbe (style.css) -->
+      <fieldset id="egg-types">
+        <legend>Typ</legend>
+        <label data-type="Fire"><input type="radio" name="egg-type" value="Fire" checked><span class="type-icon" aria-hidden="true">🔥</span>Feuer</label>
+        <label data-type="Water"><input type="radio" name="egg-type" value="Water"><span class="type-icon" aria-hidden="true">💧</span>Wasser</label>
+        <label data-type="Earth"><input type="radio" name="egg-type" value="Earth"><span class="type-icon" aria-hidden="true">🪨</span>Erde</label>
+        <label data-type="Wind"><input type="radio" name="egg-type" value="Wind"><span class="type-icon" aria-hidden="true">🌪️</span>Wind</label>
+      </fieldset>
 
       <button id="egg-start-button">Ei ausbrüten</button>
     </div>
-
-    <p id="egg-countdown-box" hidden>Schlüpft in <span id="egg-countdown">60</span> Sekunden …</p>
   </section>
 
   <!-- ===== Haustier-Screen (Victoria) ===== -->
   <section id="screen-pet" hidden>
     <h2><span id="pet-name">Name</span></h2>
-    <p>
-      Typ: <span id="pet-type">–</span> ·
-      Stadium: <span id="pet-stage">–</span> ·
-      Münzen: <span id="pet-coins">0</span>
-    </p>
+    <ul id="pet-info">
+      <li>Typ <span id="pet-type">–</span></li>
+      <li>Stadium <span id="pet-stage">–</span></li>
+      <li>Münzen <span id="pet-coins">0</span></li>
+    </ul>
 
-    <div id="pet-creature">🐣</div>
-
-    <p>Happiness: <span id="pet-happiness">0</span> / 100</p>
-    <p>Evolutions-Fortschritt: <span id="pet-evolution-progress">0</span> s</p>
+    <!-- Das "Gerät": Display mit dem Tier, darunter Happiness und Evolution als LCD-Anzeige -->
+    <div class="device">
+      <div class="device-screen"><div id="pet-creature">🐣</div></div>
+      <div class="device-readouts">
+        <p class="device-readout">Happiness <span><span id="pet-happiness" class="lcd">0</span> / 100</span></p>
+        <p class="device-readout">Evolutions-Fortschritt <span><span id="pet-evolution-progress" class="lcd">0</span> s</span></p>
+      </div>
+    </div>
 
     <div id="pet-needs">
       <p>Fullness <progress id="bar-fullness" max="100" value="0"></progress> <span id="value-fullness">0</span></p>
@@ -75,15 +100,15 @@
     </div>
 
     <div id="pet-actions">
-      <button id="button-feed">🍖 Füttern</button>
-      <button id="button-wash">🧽 Waschen</button>
-      <button id="button-play">⚽ Spielen</button>
-      <button id="button-sleep">💤 Schlafen</button>
+      <button id="button-feed"><span class="icon" aria-hidden="true">🍖</span>Füttern</button>
+      <button id="button-wash"><span class="icon" aria-hidden="true">🧽</span>Waschen</button>
+      <button id="button-play"><span class="icon" aria-hidden="true">⚽</span>Spielen</button>
+      <button id="button-sleep"><span class="icon" aria-hidden="true">💤</span>Schlafen</button>
     </div>
 
     <div id="pet-menu">
-      <button id="button-battle" hidden>⚔️ Kämpfen</button>
-      <button id="button-history">📜 Kampf-Historie</button>
+      <button id="button-battle" hidden><span class="icon" aria-hidden="true">⚔️</span>Kämpfen</button>
+      <button id="button-history" class="button-secondary"><span class="icon" aria-hidden="true">📜</span>Kampf-Historie</button>
     </div>
   </section>
 
@@ -95,13 +120,13 @@
       <!-- Gegner steht oben, weil er im Log auch zuerst kommt -->
       <div id="battle-opponent">
         <p><span id="battle-opponent-name">Gegner</span> <span id="battle-opponent-type">–</span></p>
-        <div id="battle-opponent-image">👾</div>
+        <div id="battle-opponent-image" aria-hidden="true">👾</div>
         <p>HP <progress id="battle-opponent-hp-bar" max="100" value="100"></progress>
            <span id="battle-opponent-hp">100</span></p>
       </div>
       <div id="battle-player">
         <p><span id="battle-player-name">Name</span> <span id="battle-player-type">–</span></p>
-        <div id="battle-player-image">🐣</div>
+        <div id="battle-player-image" aria-hidden="true">🐣</div>
         <p>HP <progress id="battle-player-hp-bar" max="100" value="100"></progress>
            <span id="battle-player-hp">100</span></p>
       </div>
@@ -119,15 +144,16 @@
     <ul id="battle-log" aria-live="polite"></ul>
 
     <p id="battle-result" hidden></p>
-    <button id="battle-back-button">Zurück</button>
+    <button id="battle-back-button" class="button-secondary">Zurück</button>
   </section>
 
   <!-- ===== Historie-Screen (Erol): Inhalt füllt historyScreen.js, die 20 neuesten Kämpfe, der neueste zuerst ===== -->
   <section id="screen-history" hidden>
     <h2>Kampf-Historie</h2>
-    <p id="history-empty" hidden>Noch keine Kämpfe.</p>
+    <p id="history-empty" hidden>Noch keine Kämpfe. Hier erscheint jeder Kampf, sobald er vorbei ist.</p>
+    <!-- Eine Zeile: Gegner, Datum und Ergebnis (historyScreen.js) -->
     <ol id="history-list"></ol>
-    <button id="history-back-button">Zurück</button>
+    <button id="history-back-button" class="button-secondary">Zurück</button>
   </section>
 
   <!-- Reihenfolge: zuerst Speichern und Logik, dann Anzeige (…Screen.js), main.js immer als letztes -->

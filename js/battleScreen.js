@@ -90,13 +90,16 @@ function getAttackButton(index) {
 }
 
 // Name, Typ und Bild von Gegner und eigenem Tier anzeigen.
+// data-type färbt Typ-Schild und Bild in der Typfarbe (style.css).
 function showFighters() {
   const opponent = currentBattle.opponent;
+  document.getElementById("battle-opponent").dataset.type = opponent.type;
   document.getElementById("battle-opponent-name").textContent = opponent.name;
   document.getElementById("battle-opponent-type").textContent = TYPE_NAMES[opponent.type];
   document.getElementById("battle-opponent-image").textContent = opponent.image;
 
   const player = currentBattle.creature;
+  document.getElementById("battle-player").dataset.type = player.type;
   document.getElementById("battle-player-name").textContent = player.name;
   document.getElementById("battle-player-type").textContent = TYPE_NAMES[player.type];
   document.getElementById("battle-player-image").textContent = getCreatureImage(player);

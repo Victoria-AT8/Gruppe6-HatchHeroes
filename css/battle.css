@@ -1,6 +1,6 @@
 /* Owner: Jan
    Kampf-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
-   Verwendet Variablen und Grundregeln aus style.css. */
+   Verwendet Variablen und Grundregeln aus style.css (Farben, Buttons, .button-secondary). */
 
 /* Gehäuse kommt aus style.css (section). Der Kampf-Screen bekommt ein dunkles Indigo,
    damit man sofort sieht: Jetzt wird gekämpft. */
@@ -11,52 +11,69 @@
   --glow: #d4d0ee;
 }
 
-#screen-battle h2 {
-  text-align: center;
-  color: #443270;
-}
-
-/* ===== Arena: Gegner (oben) und Spieler (unten) ===== */
+/* ===== Arena: Gegner oben rechts, Spieler unten links (wie in klassischen Kampfspielen) ===== */
 #battle-arena {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin: 16px 0 20px;
+  gap: 14px;
+  margin: 0 0 20px;
   padding: 16px;
-  background: radial-gradient(ellipse at center, #ffffff 0%, #f6f4fa 100%);
-  border: 2px solid #e4e0ee;
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 20%, #ffffff 0%, transparent 100%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, #ffffff 0%, transparent 100%),
+    var(--tint);
+  border: 2px solid var(--glow);
   border-radius: 24px;
 }
 
+/* Jede Seite: Name + Typ und HP-Balken neben dem Bild.
+   battleScreen.js setzt data-type, damit Typ-Schild und Bild die Typfarbe bekommen (style.css). */
 #battle-opponent,
 #battle-player {
-  padding: 14px 18px;
+  display: grid;
+  align-items: center;
+  column-gap: 16px;
+  padding: 12px 16px;
   background: #ffffff;
-  border: 2px solid #e7e3ef;
+  border: 2px solid var(--line);
   border-radius: 18px;
-  box-shadow: 0 4px 0 #e7e3ef;
+  box-shadow: 0 4px 0 var(--line);
 }
 
+/* Gegner rot, Spieler grün – dieselben Farben wie im Kampf-Log */
 #battle-opponent {
-  border-left: 5px solid #d44837;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "info image" "hp image";
+  margin-left: 14%;
+  border-left: 6px solid #d44837;
 }
 
 #battle-player {
-  border-left: 5px solid #2f8a4a;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "image info" "image hp";
+  margin-right: 14%;
+  border-left: 6px solid var(--good);
 }
+
+#battle-opponent > p:first-child,
+#battle-player > p:first-child { grid-area: info; }
+#battle-opponent > p:last-child,
+#battle-player > p:last-child { grid-area: hp; }
 
 #battle-opponent p,
 #battle-player p {
-  margin: 4px 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  margin: 4px 0;
   font-size: 14px;
 }
 
 #battle-opponent-name,
 #battle-player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-toy);
   font-weight: 600;
   font-size: 18px;
@@ -65,7 +82,7 @@
 
 #battle-opponent-type,
 #battle-player-type {
-  display: inline-block;
+  flex-shrink: 0;
   padding: 2px 10px;
   background: var(--tint);
   color: var(--accent-dark);
@@ -74,19 +91,19 @@
   font-size: 12px;
 }
 
-/* Kämpfer-Icons / Emojis */
+/* Kämpfer-Bilder auf einem runden Podest in der Typfarbe */
 #battle-opponent-image,
 #battle-player-image {
+  grid-area: image;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
-  margin: 8px auto;
-  font-size: 44px;
+  width: 84px;
+  height: 84px;
+  font-size: 50px;
   line-height: 1;
-  background: radial-gradient(circle at center, #fff 0%, #f4effc 75%);
-  border: 1px solid var(--glow);
+  background: radial-gradient(circle at 50% 40%, #fff 0%, var(--tint) 70%);
+  border: 2px solid var(--glow);
   border-radius: 50%;
   animation: fighter-bob 2.5s ease-in-out infinite;
 }
@@ -104,7 +121,8 @@
 #battle-opponent-hp-bar,
 #battle-player-hp-bar {
   flex: 1;
-  height: 16px;
+  min-width: 0;
+  height: 14px;
   border: none;
   border-radius: 20px;
   overflow: hidden;
@@ -124,7 +142,7 @@
 }
 
 #battle-player-hp-bar::-webkit-progress-value {
-  background: #2f8a4a;
+  background: var(--good);
   border-radius: 20px;
   transition: width 200ms ease;
 }
@@ -135,7 +153,7 @@
 }
 
 #battle-player-hp-bar::-moz-progress-bar {
-  background: #2f8a4a;
+  background: var(--good);
   border-radius: 20px;
 }
 
@@ -147,51 +165,33 @@
   font-family: var(--font-lcd);
   font-weight: 600;
   font-size: 18px;
+  font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
-/* ===== 4 Attacken-Buttons ===== */
+/* ===== 4 Attacken-Buttons (Aussehen der Tasten aus style.css) ===== */
 #battle-attacks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 18px 0;
+  gap: 12px;
+  margin: 0 0 18px;
 }
 
 #battle-attacks button {
   min-height: 52px;
   padding: 10px 14px;
-  font-size: 15px;
-  background: var(--accent);
-  color: white;
-  border-radius: 14px;
-  border: 1px solid transparent;
-  cursor: pointer;
-}
-
-#battle-attacks button:hover:not(:disabled) {
-  background: var(--accent-dark);
-}
-
-#battle-attacks button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  font-size: 16px;
 }
 
 /* ===== Kampf-Log ===== */
 #battle-log {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 160px;
+  max-height: 168px;
   overflow-y: auto;
-  margin: 14px 0 18px;
-  padding: 10px;
+  margin: 0 0 18px;
+  padding: 6px 14px;
   list-style: none;
-  background: #f8f7fb;
-  border: 2px solid #e7e3ef;
+  background: var(--surface);
+  border: 2px solid var(--line);
   border-radius: 18px;
   font-size: 14px;
 }
@@ -201,45 +201,65 @@
 }
 
 #battle-log li {
-  padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #ece8f3;
-  border-radius: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 0;
   line-height: 1.4;
 }
 
-/* Gegner-Zeile rot markiert, Spieler-Zeile grün */
-#battle-log li:nth-child(odd) {
-  border-left: 4px solid #d44837;
+/* Jede Runde hat 2 Zeilen: eine Trennlinie nach der Spieler-Zeile */
+#battle-log li:nth-child(even):not(:last-child) {
+  border-bottom: 1px dashed var(--line);
 }
 
-#battle-log li:nth-child(even) {
-  border-left: 4px solid #2f8a4a;
+/* Punkt vor der Zeile: Gegner rot, Spieler grün */
+#battle-log li::before {
+  content: "";
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translateY(-1px);
+}
+
+#battle-log li:nth-child(odd)::before {
+  background: #d44837;
+}
+
+#battle-log li:nth-child(even)::before {
+  background: var(--good);
 }
 
 /* ===== Ergebnis am Kampfende ===== */
 #battle-result {
-  margin: 16px 0;
+  margin: 0 0 18px;
   padding: 16px 20px;
   text-align: center;
   font-family: var(--font-toy);
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 600;
   border-radius: 18px;
+  animation: result-pop 300ms ease-out;
+}
+
+@keyframes result-pop {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 #battle-result[data-result="Win"] {
   color: #1e6b37;
-  background: #eef8f0;
-  border: 2px solid #2f8a4a;
-  box-shadow: 0 4px 0 #2f8a4a;
+  background: var(--good-tint);
+  border: 2px solid var(--good);
+  box-shadow: 0 4px 0 var(--good);
 }
 
 #battle-result[data-result="Loss"] {
   color: #8c1f22;
-  background: #fcefef;
-  border: 2px solid #b42f32;
-  box-shadow: 0 4px 0 #b42f32;
+  background: var(--bad-tint);
+  border: 2px solid var(--bad);
+  box-shadow: 0 4px 0 var(--bad);
 }
 
 #battle-result[data-result="Draw"] {
@@ -249,38 +269,25 @@
   box-shadow: 0 4px 0 #8a8597;
 }
 
-/* ===== Zurück-Button ===== */
+/* ===== Zurück-Button (Farben aus .button-secondary in style.css) ===== */
 #battle-back-button {
   display: block;
   width: 100%;
-  background: #f5f3f9;
-  color: #565064;
-  border: 1px solid #e2dce9;
-  box-shadow: 0 4px 0 #e2dce9;
-}
-
-#battle-back-button:hover {
-  background: #eae5f3;
-  color: var(--ink);
-}
-
-#battle-back-button:active {
-  box-shadow: 0 1px 0 #e2dce9;
 }
 
 /* ===== Responsive Design ===== */
 @media (max-width: 440px) {
-  #battle-attacks {
-    grid-template-columns: 1fr;
-  }
-
   #battle-arena {
-    padding: 12px;
+    padding: 10px;
+    gap: 10px;
   }
 
   #battle-opponent,
   #battle-player {
+    column-gap: 10px;
     padding: 10px 12px;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   #battle-opponent-image,
@@ -289,11 +296,18 @@
     height: 60px;
     font-size: 36px;
   }
+
+  /* Eine Spalte, sonst brechen lange Namen wie "Flammenstoß (25 / 5)" mitten in der Zahl um */
+  #battle-attacks {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   #battle-opponent-image,
-  #battle-player-image {
+  #battle-player-image,
+  #battle-result {
     animation: none;
   }
 }

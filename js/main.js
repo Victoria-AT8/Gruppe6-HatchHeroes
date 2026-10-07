@@ -96,7 +96,7 @@ function changeSpeed() {
   const index = SPEED_STEPS.indexOf(speed);
   const nextIndex = (index + 1) % SPEED_STEPS.length;   // nach dem letzten wieder von vorne
   speed = SPEED_STEPS[nextIndex];
-  document.getElementById("button-speed").textContent = "⏩ Tempo: " + speed + "×";
+  document.getElementById("speed-value").textContent = speed;
 }
 
 // Neu starten: Löscht nach einer Rückfrage den Spielstand und lädt die Seite neu.
@@ -181,6 +181,7 @@ function startGame() {
   document.getElementById("battle-back-button").addEventListener("click", backToPetScreen);
   document.getElementById("button-speed").addEventListener("click", changeSpeed);
   document.getElementById("button-restart").addEventListener("click", restartGame);
+  document.getElementById("test-bar").hidden = false;   // erst jetzt tun die Test-Buttons etwas
 
   // Kein Tier oder noch ein Ei → Ei-Screen, sonst Haustier-Screen.
   if (creature === null || creature.stage === "Egg") {
