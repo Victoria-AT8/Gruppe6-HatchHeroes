@@ -29,6 +29,11 @@ let lastWrite = Promise.resolve();
 // So erscheint sie nur einmal und nicht bei jedem Speichern (alle 5 s) erneut.
 let saveErrorShown = false;
 
+// Wie oft writeNow() es versucht, bevor die Fehlermeldung kommt, und wie lange es
+// dazwischen wartet (siehe writeNow()).
+const SAVE_ATTEMPTS = 3;
+const SAVE_RETRY_DELAY_MS = 200;
+
 // Hilfsfunktion: ein leerer Spielstand (noch kein Tier, 0 Münzen, keine Kämpfe).
 function makeEmptySaveData() {
   return { creature: null, coins: 0, battles: [] };
@@ -157,19 +162,44 @@ function writeDataFile() {
   return lastWrite;
 }
 
-// Hilfsfunktion für writeDataFile(): schreibt saveData als JSON-Text in die Datei.
-// Die Einrückung (2 Leerzeichen) macht die Datei im Texteditor gut lesbar.
+// DH9: Hilfsfunktion für writeDataFile(): schreibt saveData in die Datei, mit bis zu
+// SAVE_ATTEMPTS Versuchen. Warum? Auf Windows darf Chrome die Datei nicht ersetzen,
+// solange ein anderes Programm sie kurz offen hat (z. B. der Virenscanner direkt nach
+// dem letzten Speichern). Dann schlägt ein Versuch fehl – kurz warten und nochmal.
 // Ohne gewählten Ordner passiert nichts.
 async function writeNow() {
   if (dataFolder === null) {
     return;
   }
+  for (let attempt = 1; attempt <= SAVE_ATTEMPTS; attempt++) {
+    try {
+      await writeOnce();
+      saveErrorShown = false;   // Speichern klappt (wieder) → eine neue Störung wird wieder gemeldet
+      return;
+    } catch (error) {
+      console.warn("Speichern: Versuch " + attempt + " fehlgeschlagen (" + error.name + "): " + error.message);
+      if (attempt === SAVE_ATTEMPTS) {
+        throw error;   // alle Versuche fehlgeschlagen → writeDataFile() zeigt die Meldung
+      }
+      await new Promise(function (resolve) { setTimeout(resolve, SAVE_RETRY_DELAY_MS); });
+    }
+  }
+}
+
+// Hilfsfunktion für writeNow(): schreibt saveData einmal als JSON-Text in die Datei.
+// Die Einrückung (2 Leerzeichen) macht die Datei im Texteditor gut lesbar.
+async function writeOnce() {
   const text = JSON.stringify(saveData, null, 2);
   const fileHandle = await dataFolder.getFileHandle(dataFileName, { create: true });
   const writable = await fileHandle.createWritable();
-  await writable.write(text);
-  await writable.close();   // erst hier ist die Datei auf der Festplatte geändert
-  saveErrorShown = false;   // Speichern klappt (wieder) → eine neue Störung wird wieder gemeldet
+  try {
+    await writable.write(text);
+    await writable.close();   // erst hier ist die Datei auf der Festplatte geändert
+  } catch (error) {
+    // Hilfsdatei wegräumen, damit der nächste Versuch neu anfangen kann
+    await writable.abort().catch(function () {});
+    throw error;
+  }
 }
 
 
