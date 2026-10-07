@@ -2,8 +2,10 @@
 // Start des Spiels: Laden, Spieluhr, Speichern, Screen-Wechsel (PROJEKTPLAN.md, Abschnitt 6).
 // Diese Datei wird als letzte geladen.
 
-// Zum Testen auf 60 setzen (1 echte Sekunde = 1 Spielminute). Vor dem Commit wieder auf 1!
-const SPEED = 1;
+// Tempo der Spieluhr: so viele Spielsekunden vergehen pro echter Sekunde.
+// Wird mit dem Tempo-Button umgeschaltet und nicht gespeichert → nach dem Neuladen wieder 1.
+let speed = 1;
+const SPEED_STEPS = [1, 10, 60];   // 60 = 1 echte Sekunde ist 1 Spielminute
 
 const DECAY_EVERY_SECONDS = 10;   // alle 10 Spielsekunden sinken die Bedürfnisse (Abschnitt 2.2)
 const SAVE_EVERY_SECONDS = 5;     // alle 5 echten Sekunden wird gespeichert (Abschnitt 6)
@@ -53,8 +55,8 @@ function tick() {
     return;
   }
 
-  // Mit SPEED = 60 vergehen pro echter Sekunde 60 Spielsekunden.
-  for (let i = 0; i < SPEED; i++) {
+  // Mit speed = 60 vergehen pro echter Sekunde 60 Spielsekunden.
+  for (let i = 0; i < speed; i++) {
     passGameSecond();
   }
 
@@ -65,6 +67,14 @@ function tick() {
   }
 
   updatePetScreen(creature, coins);
+}
+
+// Test-Hilfe: Schaltet das Tempo weiter (1× → 10× → 60× → wieder 1×).
+function changeSpeed() {
+  const index = SPEED_STEPS.indexOf(speed);
+  const nextIndex = (index + 1) % SPEED_STEPS.length;   // nach dem letzten wieder von vorne
+  speed = SPEED_STEPS[nextIndex];
+  document.getElementById("button-speed").textContent = "⏩ Tempo: " + speed + "×";
 }
 
 // DH8: Übersetzt das gespeicherte Ergebnis ("Win", "Loss", "Draw") für die Anzeige.
@@ -109,6 +119,9 @@ function startGame() {
     showScreen("pet");
     updatePetScreen(creature, coins);
   });
+
+  // Test-Hilfe: Tempo-Button
+  document.getElementById("button-speed").addEventListener("click", changeSpeed);
 
   // Kein Tier oder noch ein Ei → Ei-Screen, sonst Haustier-Screen.
   if (creature === null || creature.stage === "Egg") {

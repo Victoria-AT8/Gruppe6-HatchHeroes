@@ -332,7 +332,7 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 1. Ei benennen, Typ wählen, der Countdown läuft sichtbar, das Tier schlüpft als Baby.
 2. Die 4 Pflege-Buttons erhöhen ihre Balken. Die Balken sinken mit der Zeit.
 3. Die Happiness wird angezeigt und passt zu den Balken.
-4. Mit `SPEED = 60` entwickelt sich das Tier zu First Evolution und danach zu Second Evolution.
+4. Mit dem Tempo-Button auf 60× entwickelt sich das Tier zu First Evolution und danach zu Second Evolution.
 5. Seite schließen und neu öffnen → Name, Typ, Bedürfnisse, Stadium und Evolutions-Fortschritt sind wieder da.
 6. `tests.html`: Alle Tests von Victoria und Erol zeigen ✔.
 
@@ -411,9 +411,9 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 | DH6–DH8 | Win, Loss und Draw spielen → Historie und `hh_battles` prüfen |
 | FR3.1 | Kampf-Button erscheint erst ab Second Evolution, der Log zeigt den Gegner vor dem Spieler |
 
-**Schneller testen:** In `main.js` steht `const SPEED = 1;`.
-- Für Tests auf `60` setzen. Dann vergeht pro echter Sekunde eine Spielminute: Die Evolution braucht 5 s bzw. 10 s statt 5 bzw. 10 Minuten.
-- Vor dem Commit wieder auf `1` stellen.
+**Schneller testen:** Oben auf der Seite steht der Button **⏩ Tempo**. Jeder Klick schaltet weiter: 1× → 10× → 60× → 1×.
+- Bei 60× vergeht pro echter Sekunde eine Spielminute: Die Evolution braucht 5 s bzw. 10 s statt 5 bzw. 10 Minuten.
+- Das Tempo wird nicht gespeichert. Nach dem Neuladen steht es wieder auf 1×.
 
 ---
 
