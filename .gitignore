@@ -1,0 +1,10 @@
+# Owner: Erol – Dateien, die Git nicht hochladen soll (PROJEKTPLAN.md, Abschnitt 4)
+
+# Spielstand: Jede Person hat ihren eigenen. Hochladen würde ständig Konflikte geben.
+data.json
+
+# Testdaten: löschen die Tests selbst. Bleibt die Datei nach einem Abbruch liegen, kommt sie nicht ins Repo.
+test-data.json
+
+# macOS legt diese Datei in jedem Ordner an, den man im Finder öffnet.
+.DS_Store
