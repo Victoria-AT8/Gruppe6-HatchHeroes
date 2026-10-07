@@ -1,86 +1,224 @@
 // Owner: Erol
-// Speichern und Laden mit localStorage (PROJEKTPLAN.md, Abschnitt 6).
-// localStorage kann nur Text speichern: Objekte werden mit JSON.stringify zu Text
-// und beim Laden mit JSON.parse wieder zu Objekten.
+// Speichern und Laden mit der Datei data.json (PROJEKTPLAN.md, Abschnitt 6).
+// Chrome und Edge dürfen über die File System Access API in einen Ordner schreiben,
+// den der Spieler selbst ausgewählt hat. Firefox und Safari können das nicht.
+//
+// Ablauf:
+// 1. Beim Start liest openDataFolder() die Datei einmal in saveData ein.
+// 2. Die load...-Funktionen lesen aus saveData und antworten sofort.
+// 3. Die save...-Funktionen ändern saveData und schreiben danach die ganze Datei neu.
+//
+// Dateien lesen und schreiben dauert ein paar Millisekunden. Diese Funktionen sind "async":
+// Mit "await" wartet man, bis sie fertig sind, ohne dass das Spiel hängen bleibt.
 
-// Alle Schlüssel beginnen mit diesem Prefix.
-// tests.html setzt ihn auf "test_", damit die Tests den echten Spielstand nicht überschreiben.
-let storagePrefix = "hh_";
+// Name der Datei im Spielordner.
+// tests.html setzt ihn auf "test-data.json", damit die Tests den echten Spielstand nicht überschreiben.
+let dataFileName = "data.json";
 
-// Hilfsfunktion (nur in dieser Datei): schreibt value als JSON-Text unter storagePrefix + name.
-// Ist der Speicher voll, wirft setItem einen Fehler. Wir zeigen dann eine Meldung
-// und löschen nichts automatisch (DH12, PROJEKTPLAN.md Abschnitt 3).
-function writeToStorage(name, value) {
-  try {
-    localStorage.setItem(storagePrefix + name, JSON.stringify(value));
-  } catch (error) {
-    alert("Speichern fehlgeschlagen: Der Speicher ist voll.");
+// Der Spielstand im Arbeitsspeicher, also eine Kopie des Datei-Inhalts.
+let saveData = makeEmptySaveData();
+
+// Der Ordner, den der Spieler ausgewählt hat. null, solange noch keiner gewählt ist.
+let dataFolder = null;
+
+// Warteschlange: Jeder Schreibvorgang wartet, bis der vorherige fertig ist.
+// So schreiben nie zwei Speicherungen gleichzeitig in dieselbe Datei.
+let lastWrite = Promise.resolve();
+
+// true, solange die Fehlermeldung "Speichern fehlgeschlagen" schon angezeigt wurde.
+// So erscheint sie nur einmal und nicht bei jedem Speichern (alle 5 s) erneut.
+let saveErrorShown = false;
+
+// Hilfsfunktion: ein leerer Spielstand (noch kein Tier, 0 Münzen, keine Kämpfe).
+function makeEmptySaveData() {
+  return { creature: null, coins: 0, battles: [] };
+}
+
+// Gibt true zurück, wenn der Browser in Dateien schreiben kann (Chrome, Edge).
+function canUseDataFile() {
+  return typeof showDirectoryPicker === "function";
+}
+
+
+// ===== Ordner merken (IndexedDB) =====
+// Damit man den Ordner nicht bei jedem Start neu auswählen muss, merken wir ihn uns in
+// IndexedDB, einer kleinen Datenbank im Browser. localStorage kann keine Ordner speichern.
+
+// Öffnet die Browser-Datenbank "hatchheroes" mit dem Bereich "folders".
+function openFolderMemory() {
+  return new Promise(function (resolve, reject) {
+    const request = indexedDB.open("hatchheroes", 1);
+    request.onupgradeneeded = function () {
+      request.result.createObjectStore("folders");   // nur beim allerersten Öffnen
+    };
+    request.onsuccess = function () { resolve(request.result); };
+    request.onerror = function () { reject(request.error); };
+  });
+}
+
+// Merkt sich den ausgewählten Ordner.
+async function rememberFolder(folder) {
+  const database = await openFolderMemory();
+  return new Promise(function (resolve, reject) {
+    const transaction = database.transaction("folders", "readwrite");
+    transaction.objectStore("folders").put(folder, "gameFolder");
+    transaction.oncomplete = function () { resolve(); };
+    transaction.onerror = function () { reject(transaction.error); };
+  });
+}
+
+// Gibt den gemerkten Ordner zurück, oder null, wenn noch keiner gemerkt ist.
+async function loadRememberedFolder() {
+  const database = await openFolderMemory();
+  return new Promise(function (resolve, reject) {
+    const request = database.transaction("folders").objectStore("folders").get("gameFolder");
+    request.onsuccess = function () {
+      resolve(request.result === undefined ? null : request.result);
+    };
+    request.onerror = function () { reject(request.error); };
+  });
+}
+
+
+// ===== Datei öffnen, lesen, schreiben =====
+
+// FR2.1, DH11: Holt den Spielordner und lädt die Datei in saveData.
+// askUser = false: Lädt nur, wenn Chrome den Zugriff schon erlaubt hat. Es erscheint kein Dialog.
+// askUser = true:  Darf nachfragen bzw. den Ordner-Dialog öffnen. Chrome erlaubt das nur
+//                  direkt nach einem Klick des Spielers.
+// Gibt true zurück, wenn der Spielstand geladen ist, sonst false.
+async function openDataFolder(askUser) {
+  let folder = await loadRememberedFolder();
+
+  // Gemerkter Ordner: Haben wir noch Zugriff?
+  if (folder !== null) {
+    let permission = await folder.queryPermission({ mode: "readwrite" });
+    if (permission === "prompt" && askUser) {
+      permission = await folder.requestPermission({ mode: "readwrite" });   // "Zugriff erlauben?"
+    }
+    if (permission !== "granted") {
+      if (!askUser) {
+        return false;
+      }
+      folder = null;   // Zugriff abgelehnt → Ordner neu auswählen lassen
+    }
+  }
+
+  // Noch kein Ordner: Ordner-Dialog öffnen.
+  if (folder === null) {
+    if (!askUser) {
+      return false;
+    }
+    try {
+      folder = await showDirectoryPicker({ id: "hatchheroes", mode: "readwrite" });
+    } catch (error) {
+      if (error.name === "AbortError") {
+        return false;   // Der Spieler hat den Dialog mit "Abbrechen" geschlossen.
+      }
+      throw error;
+    }
+    await rememberFolder(folder);
+  }
+
+  dataFolder = folder;
+  await readDataFile();
+  return true;
+}
+
+// DH11, NFR2.1: Liest die Datei aus dem Spielordner in saveData.
+// Gibt es die Datei noch nicht, wird sie mit einem leeren Spielstand angelegt.
+// Ist der Inhalt kein gültiges JSON (z. B. von Hand falsch bearbeitet), wirft JSON.parse einen
+// Fehler. Die Datei wird dann NICHT überschrieben.
+async function readDataFile() {
+  const fileHandle = await dataFolder.getFileHandle(dataFileName, { create: true });
+  const file = await fileHandle.getFile();
+  const text = await file.text();
+
+  if (text === "") {
+    saveData = makeEmptySaveData();   // neue, leere Datei
+    await writeDataFile();
+  } else {
+    saveData = JSON.parse(text);
   }
 }
 
-// FR2.1, DH1–DH4, DH13: Speichert das Tier (Name, Typ, Bedürfnisse, Stadium, Fortschritt)
-// unter storagePrefix + "creature".
+// DH9, DH10, DH12: Stellt das Schreiben der Datei hinten in die Warteschlange.
+// Wer warten muss, bis die Datei wirklich geschrieben ist, schreibt "await writeDataFile()".
+// Klappt das Schreiben nicht (Zugriff entzogen, Festplatte voll), erscheint einmal eine Meldung.
+// Klappt es später wieder, wird eine neue Störung auch wieder gemeldet.
+// Alte Kämpfe werden nie automatisch gelöscht (DH12).
+function writeDataFile() {
+  lastWrite = lastWrite.then(writeNow).catch(function (error) {
+    if (!saveErrorShown) {
+      saveErrorShown = true;
+      alert("Speichern fehlgeschlagen: " + error.message);
+    }
+  });
+  return lastWrite;
+}
+
+// Hilfsfunktion für writeDataFile(): schreibt saveData als JSON-Text in die Datei.
+// Die Einrückung (2 Leerzeichen) macht die Datei im Texteditor gut lesbar.
+// Ohne gewählten Ordner passiert nichts.
+async function writeNow() {
+  if (dataFolder === null) {
+    return;
+  }
+  const text = JSON.stringify(saveData, null, 2);
+  const fileHandle = await dataFolder.getFileHandle(dataFileName, { create: true });
+  const writable = await fileHandle.createWritable();
+  await writable.write(text);
+  await writable.close();   // erst hier ist die Datei auf der Festplatte geändert
+  saveErrorShown = false;   // Speichern klappt (wieder) → eine neue Störung wird wieder gemeldet
+}
+
+
+// ===== Funktionen aus PROJEKTPLAN.md, Abschnitt 5 (Namen bleiben gleich) =====
+
+// FR2.1, DH1–DH4, DH13: Speichert das Tier (Name, Typ, Bedürfnisse, Stadium, Fortschritt).
 function saveCreature(creature) {
-  writeToStorage("creature", creature);
+  saveData.creature = creature;
+  writeDataFile();
 }
 
-// FR2.1, DH11: Lädt das Tier. Gibt null zurück, wenn noch keines gespeichert ist.
+// FR2.1, DH11: Gibt das Tier zurück, oder null, wenn noch keines gespeichert ist.
 function loadCreature() {
-  const text = localStorage.getItem(storagePrefix + "creature");
-  if (text === null) {
-    return null;
-  }
-  return JSON.parse(text);
+  return saveData.creature;
 }
 
-// DH5: Speichert die Münzen unter storagePrefix + "coins".
+// DH5: Speichert die Münzen.
 function saveCoins(coins) {
-  writeToStorage("coins", coins);
+  saveData.coins = coins;
+  writeDataFile();
 }
 
-// DH5, DH11: Lädt die Münzen. Gibt 0 zurück, wenn noch nichts gespeichert ist.
+// DH5, DH11: Gibt die Münzen zurück (0, wenn noch nichts gespeichert ist).
 function loadCoins() {
-  const text = localStorage.getItem(storagePrefix + "coins");
-  if (text === null) {
-    return 0;
-  }
-  return JSON.parse(text);
+  return saveData.coins;
 }
 
-// Hilfsfunktion (nur in dieser Datei): lädt die Liste aller Kämpfe, den ältesten zuerst.
-// Gibt eine leere Liste zurück, wenn noch kein Kampf gespeichert ist.
-function loadBattleList() {
-  const text = localStorage.getItem(storagePrefix + "battles");
-  if (text === null) {
-    return [];
-  }
-  return JSON.parse(text);
-}
-
-// DH6–DH8, DH12: Hängt einen Kampf hinten an die Liste unter storagePrefix + "battles" an.
+// DH6–DH8, DH12: Hängt einen Kampf hinten an die Liste aller Kämpfe an.
 // battle = { opponent, endedAt, result }. Alte Kämpfe werden nie gelöscht.
 function addBattle(battle) {
-  const battles = loadBattleList();
-  battles.push(battle);
-  writeToStorage("battles", battles);
+  saveData.battles.push(battle);
+  writeDataFile();
 }
 
 // NFR2.1: Gibt die count neuesten Kämpfe zurück, den neuesten zuerst.
 // Die neuesten stehen hinten in der Liste: slice(-count) nimmt die letzten count Einträge,
 // reverse() dreht sie um.
 function loadRecentBattles(count) {
-  const battles = loadBattleList();
-  return battles.slice(-count).reverse();
+  return saveData.battles.slice(-count).reverse();
 }
 
 // DH12: Gibt die Anzahl aller gespeicherten Kämpfe zurück.
 function countBattles() {
-  return loadBattleList().length;
+  return saveData.battles.length;
 }
 
-// Neu starten: Löscht den ganzen Spielstand (Tier, Münzen und Kampf-Historie).
+// Neu starten: Setzt den ganzen Spielstand zurück (Tier, Münzen und Kampf-Historie)
+// und schreibt das in die Datei. Mit "await deleteSaveGame()" wartet man, bis die Datei geschrieben ist.
 function deleteSaveGame() {
-  localStorage.removeItem(storagePrefix + "creature");
-  localStorage.removeItem(storagePrefix + "coins");
-  localStorage.removeItem(storagePrefix + "battles");
+  saveData = makeEmptySaveData();
+  return writeDataFile();
 }
