@@ -76,10 +76,38 @@
     </div>
   </section>
 
-  <!-- ===== Kampf-Screen (Jan) – Platzhalter, wird in Phase 2 ausgebaut ===== -->
+  <!-- ===== Kampf-Screen (Jan): Inhalt füllt battleScreen.js, Design in battle.css ===== -->
   <section id="screen-battle">
     <h2>Kampf</h2>
-    <p>Kommt in Phase 2.</p>
+
+    <div id="battle-arena">
+      <!-- Gegner steht oben, weil er im Log auch zuerst kommt -->
+      <div id="battle-opponent">
+        <p><span id="battle-opponent-name">Gegner</span> · <span id="battle-opponent-type">–</span></p>
+        <div id="battle-opponent-image">👾</div>
+        <p>HP <progress id="battle-opponent-hp-bar" max="100" value="100"></progress>
+           <span id="battle-opponent-hp">100</span></p>
+      </div>
+      <div id="battle-player">
+        <p><span id="battle-player-name">Name</span> · <span id="battle-player-type">–</span></p>
+        <div id="battle-player-image">🐣</div>
+        <p>HP <progress id="battle-player-hp-bar" max="100" value="100"></progress>
+           <span id="battle-player-hp">100</span></p>
+      </div>
+    </div>
+
+    <!-- 4 Attacken-Buttons, die Nummer 0–3 passt zu playRound() -->
+    <div id="battle-attacks">
+      <button id="battle-attack-0">Attacke 1</button>
+      <button id="battle-attack-1">Attacke 2</button>
+      <button id="battle-attack-2">Attacke 3</button>
+      <button id="battle-attack-3">Attacke 4</button>
+    </div>
+
+    <!-- Kampf-Log: pro Runde 2 Zeilen, zuerst der Gegner, dann der Spieler -->
+    <ul id="battle-log" aria-live="polite"></ul>
+
+    <p id="battle-result" hidden></p>
     <button id="battle-back-button">Zurück</button>
   </section>
 

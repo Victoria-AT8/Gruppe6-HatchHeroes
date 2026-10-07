@@ -132,6 +132,13 @@ function startGame() {
     updatePetScreen(creature, coins);
   });
 
+  // FR3.1: Vom Kampf-Screen zurück zum Haustier-Screen.
+  // Ein laufender Kampf wird dabei abgebrochen und nicht gespeichert (Abschnitt 2.5).
+  document.getElementById("battle-back-button").addEventListener("click", function () {
+    showScreen("pet");
+    updatePetScreen(creature, coins);
+  });
+
   // Test-Hilfe: Tempo-Button
   document.getElementById("button-speed").addEventListener("click", changeSpeed);
   document.getElementById("button-restart").addEventListener("click", restartGame);

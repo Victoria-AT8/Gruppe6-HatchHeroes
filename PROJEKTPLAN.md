@@ -2,7 +2,7 @@
 
 **Gruppe 6 · Einführung in Software Engineering · FH Technikum Wien**
 Team: Victoria Hausegger · Erol Bilyalov · Jan Magbual
-Stand: 06.10.2026
+Stand: 07.10.2026
 
 ---
 
@@ -242,6 +242,34 @@ Jede Datei verwendet nur Funktionen, die hier stehen.
 | `main.js` (E) | `showScreen(name)` | `name` ist `"egg"`, `"pet"`, `"battle"` oder `"history"`. |
 
 > **Warum bekommt `playRound` die Gegner-Attacke als Zahl übergeben,** statt sie selbst zufällig zu wählen? So können die Tests eine feste Gegner-Attacke vorgeben und das Ergebnis ist immer gleich. Im Spiel ruft `battleScreen.js` vorher `chooseOpponentAttack()` auf.
+
+### IDs im Kampf-Screen (`index.html`, für `battleScreen.js` und `battle.css`)
+Alle Elemente stehen in `<section id="screen-battle">`. Die Texte darin sind nur Platzhalter, die `battleScreen.js` überschreibt.
+
+| ID | Element | Wofür |
+|---|---|---|
+| `battle-arena` | `<div>` | Umschließt Gegner und Spieler (für das Layout) |
+| `battle-opponent` | `<div>` | Bereich des Gegners, steht oben |
+| `battle-opponent-name` | `<span>` | Name des Gegners |
+| `battle-opponent-type` | `<span>` | Typ des Gegners |
+| `battle-opponent-image` | `<div>` | Bild/Emoji des Gegners |
+| `battle-opponent-hp-bar` | `<progress>` | HP-Balken des Gegners (`max="100"`) |
+| `battle-opponent-hp` | `<span>` | HP des Gegners als Zahl |
+| `battle-player` | `<div>` | Bereich des eigenen Tiers |
+| `battle-player-name` | `<span>` | Name des eigenen Tiers |
+| `battle-player-type` | `<span>` | Typ des eigenen Tiers |
+| `battle-player-image` | `<div>` | Bild/Emoji des eigenen Tiers |
+| `battle-player-hp-bar` | `<progress>` | HP-Balken des eigenen Tiers (`max="100"`) |
+| `battle-player-hp` | `<span>` | HP des eigenen Tiers als Zahl |
+| `battle-attacks` | `<div>` | Umschließt die 4 Attacken-Buttons |
+| `battle-attack-0` … `battle-attack-3` | `<button>` | Die 4 Attacken. Die Zahl ist die Attacken-Nummer für `playRound()`. |
+| `battle-log` | `<ul>` | Kampf-Log: pro Runde 2 `<li>`, zuerst Gegner, dann Spieler |
+| `battle-result` | `<p hidden>` | Ergebnis am Kampfende (Sieg, Niederlage, Unentschieden) |
+| `battle-back-button` | `<button>` | Zurück zum Haustier-Screen. **Fertig in `main.js`:** bricht einen laufenden Kampf ab, gespeichert wird nichts. |
+
+- **Zum Kampf-Screen wechseln:** `showBattleScreen()` ruft selbst `showScreen("battle")` auf. Der Kampf-Button im Haustier-Screen ruft `showBattleScreen(creature)` bereits auf (`petScreen.js`).
+- **Jeder Aufruf von `showBattleScreen()` ist ein neuer Kampf.** HP, Log und Ergebnis müssen dort also zurückgesetzt werden, weil nach „Zurück“ noch die Werte vom letzten Kampf drinstehen.
+- Wer ein weiteres Element braucht, sagt Erol Bescheid (Abschnitt 4).
 
 ---
 
