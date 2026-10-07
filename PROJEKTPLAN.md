@@ -139,9 +139,10 @@ H = round((F + C + E + R) / 4)
 - **Nur Chrome und Edge** (und andere Chromium-Browser) können das. Firefox und Safari zeigen beim Start den Hinweis „Bitte Chrome oder Edge verwenden“.
 - **Ordner wählen:** Der Browser darf nur in einen Ordner schreiben, den der Spieler selbst ausgewählt hat. Beim ersten Start wählt man deshalb den Projektordner. Dort legt das Spiel `data.json` und `battles.json` an. Den Ordner merkt sich der Browser in *IndexedDB*, einer kleinen Datenbank im Browser (`localStorage` kann keine Ordner speichern).
 - **Laden:** Beim Start liest das Spiel beide Dateien einmal ein. Danach liegt der Spielstand im Arbeitsspeicher, und die `load…`-Funktionen antworten sofort.
-- **Zwei Dateien:** `data.json` enthält Tier und Münzen, `battles.json` alle Kämpfe. Warum getrennt, steht unter der NFR2.1-Messung.
+- **Zwei Dateien:** `data.json` enthält Tier und Münzen, `battles.json` alle Kämpfe. So bleibt `data.json` klein und übersichtlich, und `battles.json` wird nur am Kampfende geschrieben.
 - **Speichern:** Jede Speicherung schreibt die **ganze** Datei neu, mit `JSON.stringify` und eingerückt, damit man sie gut lesen kann.
 - **Windows:** Schlägt das Schreiben fehl, weil ein anderes Programm (z. B. der Virenscanner) die Datei gerade kurz offen hat, versucht `storage.js` es bis zu 3-mal mit 200 ms Pause. Erst danach kommt die Meldung.
+- **Kein Stau:** Wartet schon eine Speicherung derselben Datei, wird keine zweite angestellt. Die wartende schreibt ohnehin den neuesten Stand.
 - **Nachprüfen:** `data.json` bzw. `battles.json` im Texteditor öffnen. Das brauchen wir für die Verifikation von DH2, DH3, DH6–DH10.
 
 **(A) Klicks beim Start (DH11):** Getestet am 07.10.2026 in Helium (Chromium) auf macOS.
@@ -153,16 +154,16 @@ H = round((F + C + E + R) / 4)
 
 NFR2.1 verlangt: Bei 10.000 gespeicherten Kämpfen müssen das Tier und die 20 neuesten Kämpfe in unter 2 Sekunden geladen sein.
 
-**Messung** am 07.10.2026 mit `tests/tests.html` in Helium (Chromium) auf macOS. Gemessen wird das, was beim Start passiert: Datei lesen, `JSON.parse`, Tier und die 20 neuesten Kämpfe holen.
+**Messung** am 07.10.2026 mit `tests/tests.html`. Gemessen wird das, was beim Start passiert: Datei lesen, `JSON.parse`, Tier und die 20 neuesten Kämpfe holen.
 
-| Gerät | Gespeicherte Kämpfe | Datei lesen + Tier + 20 neueste (5 Messungen) | Ganze Datei mit 10.000 Kämpfen schreiben |
+| Gerät | Gespeicherte Kämpfe | Dateien lesen + Tier + 20 neueste (5 Messungen) | 1 Speicherung |
 |---|---|---|---|
-| Erol: macOS, Helium | 10.000 (ca. 1,1 MB) | **1,5–2,2 ms** | 3,4 ms |
-| Jan: Windows 11, Chrome | 10.000 (ca. 1,1 MB) | **17,6–20,0 ms** | **1473 ms** |
+| Erol: macOS, Helium | 10.000 (ca. 1,1 MB) | **1,5–2,2 ms** | wenige ms |
+| Jan: Windows 11, Chrome | 10.000 (ca. 1,1 MB) | **24–29 ms** | **1,7–3,2 s** |
 
-- Bei 10.000 Kämpfen ist das Laden auch auf Windows etwa **100-mal schneller** als die erlaubten 2000 ms.
-- **Warum zwei Dateien?** Auf Windows prüft der Virenscanner jede Datei, nachdem Chrome sie geschrieben hat. Bei 1,1 MB dauerte das 1,5 s. Damals standen die Kämpfe noch in `data.json`, also hätte **jede Pflege-Aktion** so lange gebraucht. Das verletzt DH9 (unter 1 s). Deshalb stehen die Kämpfe seit 07.10.2026 in `battles.json`. Die kleine `data.json` (Tier und Münzen) ist schnell geschrieben, egal wie viele Kämpfe es gibt. `battles.json` wird nur am Kampfende geschrieben.
-- **Noch offen:** Messung auf Windows mit den zwei Dateien (Jan).
+- Bei 10.000 Kämpfen ist das Laden auch auf Windows etwa **70-mal schneller** als die erlaubten 2000 ms. NFR2.1 ist überall erfüllt.
+- **Speichern auf Windows ist langsam:** Bei Jan dauert jede Speicherung 1,7–3,2 s, auch wenn nur ein einziges Zeichen geschrieben wird (Test in der Konsole am 07.10.2026). Das liegt also nicht an unserer Dateigröße, sondern an Chrome auf Windows, vermutlich an der Virenprüfung nach jedem Schreiben. Aus dem Browser lässt sich das nicht beschleunigen.
+- **Folge für DH9 und DH10 (unter 1 s):** Auf dem Mac erfüllt, auf Windows nicht. **Entscheidung (07.10.2026):** Wir nehmen das hin. Das Spiel läuft normal weiter und speichert nur etwas verzögert. Vorschlag: die Abnahme auf dem Mac machen (Abschnitt 11, Punkt 3).
 - **Speicherplatz:** Eine Datei hat keine 5-MB-Grenze wie `localStorage`. 10.000 Kämpfe sind etwa 1,1 MB groß (DH12).
 - **Speichern schlägt fehl** (z. B. Zugriff verloren oder Festplatte voll): Die Meldung „Speichern fehlgeschlagen“ erscheint **einmal**, nicht bei jeder Speicherung. Alte Kämpfe löschen wir nie automatisch (DH12).
 - **Noch offen:** Die endgültige Messung findet auf dem vereinbarten Testrechner statt (siehe Abschnitt 10).
@@ -325,8 +326,8 @@ Der Spielstand steht in **zwei** Dateien im Projektordner. Warum zwei, steht in 
 
 **Wie schnell gespeichert wird:**
 - Jede Speicherung schreibt die ganze Datei neu.
-- Pflege und Evolution schreiben nur die kleine `data.json`. Die 1-Sekunden-Grenze aus DH9 und DH10 hält deshalb auch mit 10.000 Kämpfen. `tests.html` prüft das bei jedem Lauf.
-- Am Kampfende wird `battles.json` geschrieben (DH6–DH8). Bei sehr vielen Kämpfen dauert das auf Windows länger (Abschnitt 3), passiert aber nur einmal pro Kampf.
+- Pflege und Evolution schreiben nur `data.json`, am Kampfende wird `battles.json` geschrieben (DH6–DH8).
+- Auf dem Mac dauert eine Speicherung wenige Millisekunden, auf Windows 1–3 Sekunden (Abschnitt 3).
 - Die Speicherungen laufen nacheinander in einer Warteschlange, damit nie zwei gleichzeitig in die Datei schreiben.
 
 **Laden (DH11):**
@@ -481,7 +482,6 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 - **NFR2.1 (Erol):** 10.000 Test-Kämpfe in `test-battles.json` schreiben.
   - Danach 5-mal mit `performance.now()` messen, wie lange es dauert, beide Dateien zu lesen und daraus das Tier und die 20 neuesten Kämpfe zu laden. **Jede Messung muss unter 2000 ms liegen.**
   - Außerdem muss `countBattles()` nach dem Laden genau 10.000 ergeben (DH12).
-  - `data.json` schreiben muss auch mit 10.000 Kämpfen unter 1000 ms dauern (DH9, DH10).
   - Am Ende werden die Testdaten gelöscht.
   - **Vorher den Spiel-Tab schließen.** Sonst speichert das Spiel währenddessen in `data.json`, und der Test „data.json und battles.json nicht verändert“ schlägt zu Recht fehl.
 - **NFR3.1 (Jan):** 100 Kämpfe mit zufälligen Attacken durchspielen und jeden `playRound`-Aufruf messen. **Mindestens 95 % der Aufrufe müssen unter 200 ms liegen.**
@@ -510,7 +510,7 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 |---|---|---|---|
 | 1 | Annahmen (A) bestätigen | Victoria, Jan | vor ihrem Start heute |
 | 2 | Prüfen, ob `index.html` per Doppelklick startet und in `data.json` und `battles.json` speichert. **Seit 07.10. geht das nur in Chrome, Edge oder einem anderen Chromium-Browser.** | Erol (Helium ✔ am 07.10.), Victoria + Jan (eigener Browser, beim ersten Start den Projektordner wählen) | sofort |
-| 3 | Testrechner festlegen (Gerät + Browser). Der Browser muss Chromium-basiert sein (Abschnitt 3). | alle | vor Phase 3 |
+| 3 | Testrechner festlegen (Gerät + Browser). Der Browser muss Chromium-basiert sein. **Vorschlag: Erols Mac**, weil Speichern auf Windows 1–3 s dauert (Abschnitt 3). | alle | vor Phase 3 |
 | 4 | Vorgabe steht fest (Datenbank = lesbare Datei). Noch offen: kurz von der LV-Leitung bestätigen lassen, dass `data.json` und `battles.json` so passen (Abschnitt 3). | Erol | so bald wie möglich |
 | 5 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 |
 | 6 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend |
