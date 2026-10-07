@@ -23,6 +23,17 @@ Team: Victoria Hausegger, Erol Bilyalov, Jan Magbual
 
 Die Tests schreiben nur in `test-data.json` und `test-battles.json` und löschen beide am Ende wieder. `data.json` und `battles.json` bleiben unberührt.
 
+## Testergebnisse auf dem Testrechner
+
+Testrechner: Erols Mac mit Helium (Chromium), 07.10.2026. `tests/tests.html`: alle Tests ✔.
+
+| Anforderung | Soll | Ergebnis |
+|---|---|---|
+| NFR2.1 | Tier + 20 neueste Kämpfe bei 10.000 Kämpfen in unter 2000 ms laden | ✔ 1,5–2,2 ms (5 Messungen) |
+| NFR3.1 | mind. 95 % der `playRound`-Aufrufe unter 200 ms | ✔ |
+
+Zum Vergleich auf Windows 11 mit Chrome (Jan): Laden 24–29 ms, also ebenfalls erfüllt. Jede Speicherung dauert dort aber 1,7–3,2 s (siehe `PROJEKTPLAN.md`, Abschnitt 3).
+
 ## Spielstand ansehen oder löschen
 
 Der Spielstand steht in zwei Dateien im Projektordner. Man kann beide mit jedem Texteditor öffnen.

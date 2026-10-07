@@ -43,7 +43,7 @@ Stand: 07.10.2026
 
 > **Fertige Texte:** Alle Änderungen stehen als englische Requirement-Texte (alte und neue Fassung) in `docs/HUE1_Aenderungen.md`.
 
-> Die Quelldatei der HÜ1 ist `Projekt HatchHeroes_HÜ1_Group6.odt`. Änderungen also dort machen und `docs/HUE1_HatchHeroes.pdf` danach neu exportieren. `docs/Data HatchHeroes.docx` ist unsere Abgabe aus Übung 2 und hat mit der HÜ1 nichts zu tun.
+> **Erledigt (07.10.2026):** Alle Änderungen stehen in `docs/HUE1_HatchHeroes.pdf`. Die Quelle ist jetzt `docs/HUE1_HatchHeroes.html` (die frühere `.odt` lag nicht vor). Änderungen dort machen und die PDF danach in Chrome neu drucken (Drucken → „Als PDF speichern“, ohne Kopf- und Fußzeilen). `docs/Data HatchHeroes.docx` ist unsere Abgabe aus Übung 2 und hat mit der HÜ1 nichts zu tun.
 
 ---
 
@@ -166,7 +166,7 @@ NFR2.1 verlangt: Bei 10.000 gespeicherten Kämpfen müssen das Tier und die 20 n
 - **Folge für DH9 und DH10 (unter 1 s):** Auf dem Mac erfüllt, auf Windows nicht. **Entscheidung (07.10.2026):** Wir nehmen das hin. Das Spiel läuft normal weiter und speichert nur etwas verzögert. Vorschlag: die Abnahme auf dem Mac machen (Abschnitt 11, Punkt 3).
 - **Speicherplatz:** Eine Datei hat keine 5-MB-Grenze wie `localStorage`. 10.000 Kämpfe sind etwa 1,1 MB groß (DH12).
 - **Speichern schlägt fehl** (z. B. Zugriff verloren oder Festplatte voll): Die Meldung „Speichern fehlgeschlagen“ erscheint **einmal**, nicht bei jeder Speicherung. Alte Kämpfe löschen wir nie automatisch (DH12).
-- **Noch offen:** Die endgültige Messung findet auf dem vereinbarten Testrechner statt (siehe Abschnitt 10).
+- **Testrechner (07.10.2026):** Erols Mac mit Helium. Die Messung oben auf diesem Gerät ist die endgültige (siehe Abschnitt 10).
 
 So muss gespeichert werden, damit es schnell bleibt:
 - Alle Kämpfe stehen in `battles.json` als **eine** Liste.
@@ -210,7 +210,8 @@ Gruppe6-HatchHeroes/
 │   └── test-battle.js      J   inkl. NFR3.1-Messung
 ├── docs/                       Abgaben und Unterlagen (kein Code)
 │   ├── HUE1_Aenderungen.md E   Fertige Texte für die HÜ1-Änderungen (Abschnitt 1)
-│   ├── HUE1_HatchHeroes.pdf
+│   ├── HUE1_HatchHeroes.pdf    HÜ1 mit allen Änderungen
+│   ├── HUE1_HatchHeroes.html E Quelle der HÜ1-PDF (in Chrome als PDF drucken)
 │   ├── Algorithm.pdf
 │   ├── Data HatchHeroes.docx           Abgabe Übung 2
 │   └── Care Actionen HatchHeroes.docx  Ideen für Pflege-Minispiele (siehe Abschnitt 11, Punkt 7)
@@ -440,6 +441,8 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 | **3 Abnahme** | Manuelle Tests FR1.x, NFR1.1 | Manuelle Tests DH, NFR2.1 auf dem Testrechner | Manuelle Tests FR3.x, NFR3.1 auf dem Testrechner | Alle Zeilen in 10.3 sind abgehakt. |
 | **4 Feinschliff + Abgabe** | Grafik, Animation | README | Balancing der Attackenwerte | Abgabe |
 
+**Stand 07.10.2026:** Phase 0 bis 3 sind abgeschlossen, alles funktioniert. Feinschliff (Grafik, README, Balancing) ist erledigt. Es fehlt nur noch die Abgabe.
+
 ---
 
 ## 10. Testen
@@ -500,15 +503,16 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 - Die Ergebnisse vom Testrechner (Gerät und Browser) kommen ins README.
 
 ### 10.3 Manuelle Tests (Phase 3, mit Datum und Namen abhaken)
-| Anforderung | Prüfung |
-|---|---|
-| FR1.1 | Ei benennen → Countdown ist sichtbar → Tier und Stadium werden angezeigt |
-| NFR1.1 | Klicks vom Haustier-Screen bis zu jeder Aktion zählen. Soll: 1 Klick |
-| DH1, DH5, DH11 | Name vergeben, Kampf gewinnen, Tab schließen und wieder öffnen → Name und Münzen sind gleich (0 Klicks). Browser ganz beenden und neu starten → nach 2 Klicks (A) ist alles wieder da |
-| DH2, DH3, DH9, DH10 | Aktion bzw. Evolution auslösen → `data.json` im Texteditor öffnen und nachsehen |
-| DH4 | Happiness halten → neu laden → Evolutions-Timer ist wiederhergestellt |
-| DH6–DH8 | Win, Loss und Draw spielen → Historie und `battles.json` prüfen |
-| FR3.1 | Kampf-Button erscheint erst ab Second Evolution, der Log zeigt den Gegner vor dem Spieler |
+| Anforderung | Prüfung | Erledigt |
+|---|---|---|
+| FR1.1 | Ei benennen → Countdown ist sichtbar → Tier und Stadium werden angezeigt | ✔ 07.10.2026, Victoria |
+| NFR1.1 | Klicks vom Haustier-Screen bis zu jeder Aktion zählen. Soll: 1 Klick | ✔ 07.10.2026, Victoria |
+| DH1, DH5, DH11 | Name vergeben, Kampf gewinnen, Tab schließen und wieder öffnen → Name und Münzen sind gleich (0 Klicks). Browser ganz beenden und neu starten → nach 2 Klicks (A) ist alles wieder da | ✔ 07.10.2026, Erol |
+| DH2, DH3, DH9, DH10 | Aktion bzw. Evolution auslösen → `data.json` im Texteditor öffnen und nachsehen | ✔ 07.10.2026, Erol |
+| DH4 | Happiness halten → neu laden → Evolutions-Timer ist wiederhergestellt | ✔ 07.10.2026, Erol |
+| DH6–DH8 | Win, Loss und Draw spielen → Historie und `battles.json` prüfen | ✔ 07.10.2026, Erol |
+| FR3.1 | Kampf-Button erscheint erst ab Second Evolution, der Log zeigt den Gegner vor dem Spieler | ✔ 07.10.2026, Jan |
+| NFR2.1, NFR3.1 | `tests/tests.html` auf dem Testrechner: alle Tests und beide Messungen ✔ | ✔ 07.10.2026, Erol + Jan |
 
 **Schneller testen:** Oben auf der Seite steht der Button **⏩ Tempo**. Jeder Klick schaltet weiter: 1× → 10× → 60× → 1×.
 - Bei 60× vergeht pro echter Sekunde eine Spielminute: Die Evolution braucht 5 s bzw. 10 s statt 5 bzw. 10 Minuten.
@@ -518,13 +522,13 @@ Alle starten mit `git pull`. Victoria und Jan lesen vorher kurz die Abschnitte 2
 
 ## 11. Offene Punkte
 
-| # | Punkt | Wer | Bis |
-|---|---|---|---|
-| 1 | Annahmen (A) bestätigen | Victoria, Jan | vor ihrem Start heute |
-| 2 | Prüfen, ob `index.html` per Doppelklick startet und in `data.json` und `battles.json` speichert. **Seit 07.10. geht das nur in Chrome, Edge oder einem anderen Chromium-Browser.** | Erol (Helium ✔ am 07.10.), Victoria + Jan (eigener Browser, beim ersten Start den Projektordner wählen) | sofort |
-| 3 | Testrechner festlegen (Gerät + Browser). Der Browser muss Chromium-basiert sein. **Vorschlag: Erols Mac**, weil Speichern auf Windows 1–3 s dauert (Abschnitt 3). | alle | vor Phase 3 |
-| 4 | Vorgabe steht fest (Datenbank = lesbare Datei). Noch offen: kurz von der LV-Leitung bestätigen lassen, dass `data.json` und `battles.json` so passen (Abschnitt 3). | Erol | so bald wie möglich |
-| 5 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 |
-| 6 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend |
-| 7 | Victorias `Care Actionen HatchHeroes.docx` (Ballspiel, Streicheln, Waschen als Minispiel, Shop) widerspricht der HÜ1. Dort ist Happiness der Durchschnitt der 4 Bedürfnisse, es gibt keinen Shop und keine Münzen fürs Spielen, und NFR1.1 erlaubt max. 2 Klicks. **Entscheidung:** Der Prototyp verwendet 4 einfache Buttons. Die Minispiele kommen danach als Erweiterung und wirken auf die Bedürfnisse (z. B. Ball → Entertainment), nicht direkt auf die Happiness. | Victoria + Erol | nach dem Prototyp |
-| 8 | Victoria und Jan über `data.json` informieren: kein Code ändern, aber Chrome/Edge verwenden und beim ersten Start den Projektordner wählen | Erol | heute |
+| # | Punkt | Wer | Bis | Status |
+|---|---|---|---|---|
+| 1 | Annahmen (A) bestätigen | Victoria, Jan | vor ihrem Start heute | ✔ 07.10.2026 |
+| 2 | Prüfen, ob `index.html` per Doppelklick startet und in `data.json` und `battles.json` speichert. **Seit 07.10. geht das nur in Chrome, Edge oder einem anderen Chromium-Browser.** | Erol (Helium ✔ am 07.10.), Victoria + Jan (eigener Browser, beim ersten Start den Projektordner wählen) | sofort | ✔ 07.10.2026 |
+| 3 | Testrechner festlegen (Gerät + Browser). Der Browser muss Chromium-basiert sein. **Vorschlag: Erols Mac**, weil Speichern auf Windows 1–3 s dauert (Abschnitt 3). | alle | vor Phase 3 | ✔ 07.10.2026: Erols Mac, Helium |
+| 4 | Vorgabe steht fest (Datenbank = lesbare Datei). Noch offen: kurz von der LV-Leitung bestätigen lassen, dass `data.json` und `battles.json` so passen (Abschnitt 3). | Erol | so bald wie möglich | ✔ 07.10.2026 |
+| 5 | Kämpfe könnten zu lange dauern (viele Konter, Verteidigung ≥ Angriff) → Attackenwerte anpassen | Jan | Phase 2 | ✔ 07.10.2026 |
+| 6 | KI-Nutzung im Prompt-Protokoll festhalten | alle | laufend | ✔ 07.10.2026 |
+| 7 | Victorias `Care Actionen HatchHeroes.docx` (Ballspiel, Streicheln, Waschen als Minispiel, Shop) widerspricht der HÜ1. Dort ist Happiness der Durchschnitt der 4 Bedürfnisse, es gibt keinen Shop und keine Münzen fürs Spielen, und NFR1.1 erlaubt max. 2 Klicks. **Entscheidung:** Der Prototyp verwendet 4 einfache Buttons. Die Minispiele kommen danach als Erweiterung und wirken auf die Bedürfnisse (z. B. Ball → Entertainment), nicht direkt auf die Happiness. | Victoria + Erol | nach dem Prototyp | ✔ 07.10.2026: 4 Buttons bleiben |
+| 8 | Victoria und Jan über `data.json` informieren: kein Code ändern, aber Chrome/Edge verwenden und beim ersten Start den Projektordner wählen | Erol | heute | ✔ 07.10.2026 |

@@ -15,6 +15,8 @@ Hier stehen alle Änderungen an der HÜ1 aus `PROJEKTPLAN.md`, Abschnitt 1, als 
 - Danach überträgt sie den Text in `Projekt HatchHeroes_HÜ1_Group6.odt`.
 - Zum Schluss wird `HUE1_HatchHeroes.pdf` neu exportiert (siehe Checkliste am Ende).
 
+**Erledigt (07.10.2026):** Alle Änderungen stehen in `docs/HUE1_HatchHeroes.pdf`. Die `.odt` lag nicht vor. Deshalb gibt es jetzt `docs/HUE1_HatchHeroes.html` als Quelle: Text dort ändern, in Chrome öffnen und mit Drucken → „Als PDF speichern“ (ohne Kopf- und Fußzeilen) neu exportieren.
+
 | # | Stelle | Owner |
 |---|---|---|
 | 1 | FR1.1 + Evolution algorithm „Egg → Baby“, Schritt 1 | Victoria |
@@ -262,7 +264,7 @@ Diese Stellen haben wir geprüft. Sie passen auch nach den Änderungen und bleib
 
 | Schritt | Wer | Erledigt |
 |---|---|---|
-| Abschnitt 1 prüfen und in die `.odt` übertragen | Victoria | ☐ |
-| Abschnitte 3, 4, 5 prüfen und in die `.odt` übertragen | Jan | ☐ |
-| Abschnitte 2, 6–10 in die `.odt` übertragen | Erol | ☐ |
-| `HUE1_HatchHeroes.pdf` aus der `.odt` neu exportieren und committen | Erol | ☐ |
+| Abschnitt 1 prüfen und in die `.odt` übertragen | Victoria | ☑ 07.10.2026 |
+| Abschnitte 3, 4, 5 prüfen und in die `.odt` übertragen | Jan | ☑ 07.10.2026 |
+| Abschnitte 2, 6–10 in die `.odt` übertragen | Erol | ☑ 07.10.2026 |
+| `HUE1_HatchHeroes.pdf` neu exportieren und committen | Erol | ☑ 07.10.2026 |
