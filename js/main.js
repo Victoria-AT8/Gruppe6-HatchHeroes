@@ -77,6 +77,17 @@ function changeSpeed() {
   document.getElementById("button-speed").textContent = "⏩ Tempo: " + speed + "×";
 }
 
+// Neu starten: Löscht nach einer Rückfrage den Spielstand und lädt die Seite neu.
+// Durch das Neuladen beginnt das Spiel ohne Tier wieder beim Ei-Screen.
+function restartGame() {
+  const sure = confirm("Wirklich neu starten? Tier, Münzen und Historie werden gelöscht.");
+  if (!sure) {
+    return;
+  }
+  deleteSaveGame();
+  location.reload();
+}
+
 // DH8: Übersetzt das gespeicherte Ergebnis ("Win", "Loss", "Draw") für die Anzeige.
 // Gespeichert bleibt immer der englische Wert.
 function formatResult(result) {
@@ -122,6 +133,7 @@ function startGame() {
 
   // Test-Hilfe: Tempo-Button
   document.getElementById("button-speed").addEventListener("click", changeSpeed);
+  document.getElementById("button-restart").addEventListener("click", restartGame);
 
   // Kein Tier oder noch ein Ei → Ei-Screen, sonst Haustier-Screen.
   if (creature === null || creature.stage === "Egg") {

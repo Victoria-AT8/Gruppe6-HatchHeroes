@@ -77,3 +77,10 @@ function loadRecentBattles(count) {
 function countBattles() {
   return loadBattleList().length;
 }
+
+// Neu starten: Löscht den ganzen Spielstand (Tier, Münzen und Kampf-Historie).
+function deleteSaveGame() {
+  localStorage.removeItem(storagePrefix + "creature");
+  localStorage.removeItem(storagePrefix + "coins");
+  localStorage.removeItem(storagePrefix + "battles");
+}
