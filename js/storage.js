@@ -88,6 +88,17 @@ async function rememberFolder(folder) {
   });
 }
 
+// Vergisst den gemerkten Ordner (z. B. wenn es ihn nicht mehr gibt).
+async function forgetFolder() {
+  const database = await openFolderMemory();
+  return new Promise(function (resolve, reject) {
+    const transaction = database.transaction("folders", "readwrite");
+    transaction.objectStore("folders").delete("gameFolder");
+    transaction.oncomplete = function () { resolve(); };
+    transaction.onerror = function () { reject(transaction.error); };
+  });
+}
+
 // Gibt den gemerkten Ordner zurück, oder null, wenn noch keiner gemerkt ist.
 async function loadRememberedFolder() {
   const database = await openFolderMemory();
@@ -126,6 +137,7 @@ async function openDataFolder(askUser) {
   }
 
   // Noch kein Ordner: Ordner-Dialog öffnen.
+  const rememberedFolder = folder !== null;
   if (folder === null) {
     if (!askUser) {
       return false;
@@ -142,7 +154,18 @@ async function openDataFolder(askUser) {
   }
 
   dataFolder = folder;
-  await readDataFile();
+  try {
+    await readDataFile();
+  } catch (error) {
+    // Den gemerkten Ordner gibt es nicht mehr (verschoben, umbenannt oder gelöscht):
+    // vergessen und – nach einem Klick – den Ordner-Dialog öffnen.
+    if (error.name === "NotFoundError" && rememberedFolder) {
+      dataFolder = null;
+      await forgetFolder();
+      return openDataFolder(askUser);
+    }
+    throw error;
+  }
   return true;
 }
 
