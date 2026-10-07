@@ -19,9 +19,10 @@ let gameSeconds = 0;   // Spielsekunden seit dem Schlüpfen → für decayNeeds(
 let realSeconds = 0;   // echte Sekunden seit dem Start → für das Speichern alle 5 s
 
 // FR1.1, FR3.1: Zeigt genau einen Screen an und versteckt die anderen.
-// name ist "egg", "pet", "battle" oder "history".
+// name ist "file", "egg", "pet", "battle" oder "history".
+// "file" ist der Spielstand-Screen, der beim Start angezeigt wird, bis data.json geladen ist.
 function showScreen(name) {
-  const allNames = ["egg", "pet", "battle", "history"];
+  const allNames = ["file", "egg", "pet", "battle", "history"];
   for (const screenName of allNames) {
     const section = document.getElementById("screen-" + screenName);
     section.hidden = (screenName !== name);
@@ -79,12 +80,13 @@ function changeSpeed() {
 
 // Neu starten: Löscht nach einer Rückfrage den Spielstand und lädt die Seite neu.
 // Durch das Neuladen beginnt das Spiel ohne Tier wieder beim Ei-Screen.
-function restartGame() {
+// "await": Erst neu laden, wenn der leere Spielstand wirklich in data.json steht.
+async function restartGame() {
   const sure = confirm("Wirklich neu starten? Tier, Münzen und Historie werden gelöscht.");
   if (!sure) {
     return;
   }
-  deleteSaveGame();
+  await deleteSaveGame();
   location.reload();
 }
 
@@ -115,7 +117,58 @@ function showHistory() {
   showScreen("history");
 }
 
-// FR2.1, DH11: Zuerst alles laden, erst danach einen Screen anzeigen.
+// Schreibt einen Text in den Spielstand-Screen. isError = true färbt den Kasten rot (history.css).
+function showFileMessage(text, isError) {
+  const message = document.getElementById("file-message");
+  message.textContent = text;
+  message.dataset.error = isError;
+}
+
+// FR2.1, DH11: Lädt data.json und startet danach das Spiel.
+// askUser = false beim Öffnen der Seite: Es erscheint kein Dialog. Hat Chrome den Zugriff
+//                  schon erlaubt, startet das Spiel sofort.
+// askUser = true nach einem Klick auf "Spielordner wählen": Chrome darf nachfragen.
+async function loadAndStart(askUser) {
+  const button = document.getElementById("file-button");
+  button.hidden = true;   // während des Ladens nicht noch einmal klickbar
+  showFileMessage("Spielstand wird geladen …", false);
+
+  let loaded = false;
+  try {
+    loaded = await openDataFolder(askUser);
+  } catch (error) {
+    // z. B. data.json ist kein gültiges JSON mehr → Datei bleibt unverändert
+    showFileMessage("data.json konnte nicht geladen werden: " + error.message +
+      " – Bitte die Datei reparieren oder löschen und es noch einmal versuchen.", true);
+    button.hidden = false;
+    return;
+  }
+
+  if (loaded) {
+    startGame();
+  } else {
+    // Noch kein Ordner gewählt, Zugriff noch nicht erlaubt oder Dialog abgebrochen
+    showFileMessage("Wähle den Projektordner aus. Dort liegt dein Spielstand data.json. " +
+      "Wenn du ihn schon einmal gewählt hast, musst du nur den Zugriff erlauben.", false);
+    button.hidden = false;
+  }
+}
+
+// DH11: Wird beim Öffnen der Seite aufgerufen. Erst wenn data.json geladen ist,
+// startet startGame() das Spiel. Vorher ist nur der Spielstand-Screen sichtbar.
+function openGame() {
+  if (!canUseDataFile()) {
+    showFileMessage("Dieser Browser kann keine Dateien speichern. Bitte Chrome oder Edge verwenden.", true);
+    return;
+  }
+  document.getElementById("file-button").addEventListener("click", function () {
+    loadAndStart(true);
+  });
+  loadAndStart(false);
+}
+
+// FR2.1, DH11: Wird erst aufgerufen, wenn data.json geladen ist (siehe loadAndStart).
+// Holt Tier und Münzen aus dem Spielstand und zeigt danach den passenden Screen an.
 function startGame() {
   creature = loadCreature();
   coins = loadCoins();
@@ -157,4 +210,4 @@ function startGame() {
   setInterval(tick, 1000);
 }
 
-startGame();
+openGame();

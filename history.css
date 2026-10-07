@@ -1,6 +1,21 @@
 /* Owner: Erol
-   Test-Leiste und Historie-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
+   Spielstand-Screen, Test-Leiste und Historie-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
    Farben wie --muted und --ink kommen aus style.css. */
+
+/* DH11: Spielstand-Screen – erscheint beim Start, bis data.json geladen ist */
+#screen-file { text-align: center; }
+#file-message {
+  margin: 0 0 20px;
+  padding: 24px;
+  color: var(--muted);
+  background: #f8f7fb;
+  border-radius: 14px;
+}
+/* Fehler (z. B. falscher Browser, data.json kaputt): roter Kasten wie ein verlorener Kampf.
+   main.js setzt dafür data-error="true". */
+#file-message[data-error="true"] { color: #8c1f22; background: #fcefef; }
+/* Ordner wählen ist hier die einzige Aktion → breiter Hauptbutton wie "Ei ausbrüten" */
+#file-button { display: block; width: 100%; }
 
 /* Test-Leiste: klein und dezent über der Karte, damit sie nicht wie ein Spiel-Button wirkt */
 #test-bar {

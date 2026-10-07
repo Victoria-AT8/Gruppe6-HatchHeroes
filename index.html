@@ -20,8 +20,19 @@
     <button id="button-restart">🔄 Neu starten</button>
   </div>
 
+  <!-- ===== Spielstand-Screen (Erol): data.json laden, bevor das Spiel startet (DH11) =====
+       Ist als einziger Screen von Anfang an sichtbar. main.js schreibt den Text in file-message
+       und zeigt file-button nur, wenn ein Klick nötig ist. Design in history.css. -->
+  <section id="screen-file">
+    <h2>Spielstand</h2>
+    <p id="file-message">Spielstand wird geladen …</p>
+    <button id="file-button" hidden>📂 Spielordner wählen</button>
+  </section>
+
+  <!-- Die 4 Spiel-Screens sind zuerst versteckt. main.js zeigt erst nach dem Laden einen davon an. -->
+
   <!-- ===== Ei-Screen (Victoria) ===== -->
-  <section id="screen-egg">
+  <section id="screen-egg" hidden>
     <h2>Dein Ei</h2>
     <div id="egg-image">🥚</div>
 
@@ -43,7 +54,7 @@
   </section>
 
   <!-- ===== Haustier-Screen (Victoria) ===== -->
-  <section id="screen-pet">
+  <section id="screen-pet" hidden>
     <h2><span id="pet-name">Name</span></h2>
     <p>
       Typ: <span id="pet-type">–</span> ·
@@ -77,7 +88,7 @@
   </section>
 
   <!-- ===== Kampf-Screen (Jan): Inhalt füllt battleScreen.js, Design in battle.css ===== -->
-  <section id="screen-battle">
+  <section id="screen-battle" hidden>
     <h2>Kampf</h2>
 
     <div id="battle-arena">
@@ -112,7 +123,7 @@
   </section>
 
   <!-- ===== Historie-Screen (Erol): die 20 neuesten Kämpfe, der neueste zuerst ===== -->
-  <section id="screen-history">
+  <section id="screen-history" hidden>
     <h2>Kampf-Historie</h2>
     <p id="history-empty" hidden>Noch keine Kämpfe.</p>
     <ol id="history-list"></ol>
