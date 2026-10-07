@@ -1,4 +1,284 @@
 /* Owner: Jan
-   Kampf-Screen (siehe PROJEKTPLAN.md, Abschnitt 4) */
+   Kampf-Screen (siehe PROJEKTPLAN.md, Abschnitt 4).
+   Verwendet Variablen und Grundregeln aus style.css. */
 
-/* TODO Jan: Design für den Kampf-Screen */
+#screen-battle {
+  border-top: 5px solid #c93b2b;
+}
+
+#screen-battle h2 {
+  text-align: center;
+  color: #443270;
+}
+
+/* ===== Arena: Gegner (oben) und Spieler (unten) ===== */
+#battle-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 16px 0 20px;
+  padding: 16px;
+  background: radial-gradient(ellipse at center, #ffffff 0%, #f6f4fa 100%);
+  border: 1px solid #ded9e7;
+  border-radius: 18px;
+}
+
+#battle-opponent,
+#battle-player {
+  padding: 14px 18px;
+  background: #ffffff;
+  border: 1px solid #e7e3ef;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(41, 38, 60, 0.04);
+}
+
+#battle-opponent {
+  border-left: 5px solid #d44837;
+}
+
+#battle-player {
+  border-left: 5px solid #2f8a4a;
+}
+
+#battle-opponent p,
+#battle-player p {
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}
+
+#battle-opponent-name,
+#battle-player-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+#battle-opponent-type,
+#battle-player-type {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--tint);
+  color: var(--accent-dark);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Kämpfer-Icons / Emojis */
+#battle-opponent-image,
+#battle-player-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin: 8px auto;
+  font-size: 44px;
+  line-height: 1;
+  background: radial-gradient(circle at center, #fff 0%, #f4effc 75%);
+  border: 1px solid var(--glow);
+  border-radius: 50%;
+  animation: fighter-bob 2.5s ease-in-out infinite;
+}
+
+#battle-opponent-image {
+  animation-delay: -1.25s;
+}
+
+@keyframes fighter-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* HP-Balken */
+#battle-opponent-hp-bar,
+#battle-player-hp-bar {
+  flex: 1;
+  height: 14px;
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #e6e1ed;
+}
+
+#battle-opponent-hp-bar::-webkit-progress-bar,
+#battle-player-hp-bar::-webkit-progress-bar {
+  background: #e6e1ed;
+  border-radius: 20px;
+}
+
+#battle-opponent-hp-bar::-webkit-progress-value {
+  background: #d44837;
+  border-radius: 20px;
+  transition: width 200ms ease;
+}
+
+#battle-player-hp-bar::-webkit-progress-value {
+  background: #2f8a4a;
+  border-radius: 20px;
+  transition: width 200ms ease;
+}
+
+#battle-opponent-hp-bar::-moz-progress-bar {
+  background: #d44837;
+  border-radius: 20px;
+}
+
+#battle-player-hp-bar::-moz-progress-bar {
+  background: #2f8a4a;
+  border-radius: 20px;
+}
+
+#battle-opponent-hp,
+#battle-player-hp {
+  min-width: 32px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* ===== 4 Attacken-Buttons ===== */
+#battle-attacks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+#battle-attacks button {
+  min-height: 52px;
+  padding: 10px 14px;
+  font-size: 14px;
+  background: var(--accent);
+  color: white;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 160ms, transform 160ms, opacity 160ms;
+}
+
+#battle-attacks button:hover:not(:disabled) {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+}
+
+#battle-attacks button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===== Kampf-Log ===== */
+#battle-log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  margin: 14px 0 18px;
+  padding: 10px;
+  list-style: none;
+  background: #f8f7fb;
+  border: 1px solid #e7e3ef;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+#battle-log:empty {
+  display: none;
+}
+
+#battle-log li {
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #ece8f3;
+  border-radius: 8px;
+  line-height: 1.4;
+}
+
+/* Gegner-Zeile rot markiert, Spieler-Zeile grün */
+#battle-log li:nth-child(odd) {
+  border-left: 4px solid #d44837;
+}
+
+#battle-log li:nth-child(even) {
+  border-left: 4px solid #2f8a4a;
+}
+
+/* ===== Ergebnis am Kampfende ===== */
+#battle-result {
+  margin: 16px 0;
+  padding: 16px 20px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+#battle-result[data-result="Win"] {
+  color: #1e6b37;
+  background: #eef8f0;
+  border: 2px solid #2f8a4a;
+}
+
+#battle-result[data-result="Loss"] {
+  color: #8c1f22;
+  background: #fcefef;
+  border: 2px solid #b42f32;
+}
+
+#battle-result[data-result="Draw"] {
+  color: #4a455a;
+  background: #f0edf6;
+  border: 2px solid #8a8597;
+}
+
+/* ===== Zurück-Button ===== */
+#battle-back-button {
+  display: block;
+  width: 100%;
+  background: #f5f3f9;
+  color: #565064;
+  border: 1px solid #e2dce9;
+}
+
+#battle-back-button:hover {
+  background: #eae5f3;
+  color: var(--ink);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 440px) {
+  #battle-attacks {
+    grid-template-columns: 1fr;
+  }
+
+  #battle-arena {
+    padding: 12px;
+  }
+
+  #battle-opponent,
+  #battle-player {
+    padding: 10px 12px;
+  }
+
+  #battle-opponent-image,
+  #battle-player-image {
+    width: 60px;
+    height: 60px;
+    font-size: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #battle-opponent-image,
+  #battle-player-image {
+    animation: none;
+  }
+}
