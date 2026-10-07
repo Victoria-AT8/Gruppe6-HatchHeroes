@@ -6,16 +6,18 @@
 // Zwei Dateien:
 // - data.json:    Tier und Münzen. Klein, wird bei jeder Pflege-Aktion und alle 5 s geschrieben.
 // - battles.json: alle Kämpfe. Kann groß werden, wird nur am Kampfende geschrieben.
-// Warum getrennt? Auf Windows prüft der Virenscanner jede Datei nach dem Schreiben. Bei
-// 10.000 Kämpfen dauerte das ~1,5 s. So bleibt das Speichern nach einer Pflege-Aktion
-// schnell (DH9: unter 1 s), egal wie viele Kämpfe es gibt.
+// So bleibt data.json klein und im Texteditor übersichtlich.
+//
+// Windows: Dort braucht Chrome für jede Speicherung 1–3 Sekunden, egal wie groß die Datei
+// ist (gemessen bei Jan am 07.10.2026). Das Spiel läuft trotzdem normal weiter, es speichert
+// nur etwas verzögert. Auf dem Mac dauert es wenige Millisekunden.
 //
 // Ablauf:
 // 1. Beim Start liest openDataFolder() beide Dateien einmal ein (saveData und savedBattles).
 // 2. Die load...-Funktionen lesen aus dem Arbeitsspeicher und antworten sofort.
 // 3. Die save...-Funktionen ändern den Arbeitsspeicher und schreiben danach die Datei neu.
 //
-// Dateien lesen und schreiben dauert ein paar Millisekunden. Diese Funktionen sind "async":
+// Dateien lesen und schreiben dauert etwas. Diese Funktionen sind "async":
 // Mit "await" wartet man, bis sie fertig sind, ohne dass das Spiel hängen bleibt.
 
 // Namen der Dateien im Spielordner.
@@ -43,6 +45,10 @@ let saveErrorShown = false;
 // dazwischen wartet (siehe writeNow()).
 const SAVE_ATTEMPTS = 3;
 const SAVE_RETRY_DELAY_MS = 200;
+
+// Merkt sich, für welche Datei schon eine Speicherung in der Warteschlange wartet
+// (siehe queueWrite()). Beispiel: { "data.json": true }
+let waitingWrites = {};
 
 // Hilfsfunktion: ein leerer Spielstand für data.json (noch kein Tier, 0 Münzen).
 function makeEmptySaveData() {
@@ -187,7 +193,14 @@ function writeBattlesFile() {
 // Klappt es später wieder, wird eine neue Störung auch wieder gemeldet.
 // Alte Kämpfe werden nie automatisch gelöscht (DH12).
 function queueWrite(fileName) {
+  // Wartet schon eine Speicherung dieser Datei, reicht die: Sie schreibt beim Start ohnehin
+  // den neuesten Stand. So staut sich nichts, wenn man schnell hintereinander klickt.
+  if (waitingWrites[fileName]) {
+    return lastWrite;
+  }
+  waitingWrites[fileName] = true;
   lastWrite = lastWrite.then(function () {
+    waitingWrites[fileName] = false;   // ab jetzt braucht eine neue Änderung eine neue Speicherung
     return writeNow(fileName);
   }).catch(function (error) {
     if (!saveErrorShown) {

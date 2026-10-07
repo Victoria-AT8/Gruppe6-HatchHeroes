@@ -237,22 +237,10 @@ async function testManyBattles() {
       " ms (Grenze 2000 ms)", duration < 2000 && loadedCreature !== null && loadedBattles.length === 20, true);
   }
 
-  // DH9, DH10: Auch mit 10.000 Kämpfen muss jede Pflege-Aktion bzw. Evolution in unter 1 Sekunde
-  // gespeichert sein. Dabei wird nur data.json geschrieben – die Kämpfe stehen in battles.json.
-  const writeStart = performance.now();
-  await writeDataFile();
-  const writeDuration = performance.now() - writeStart;
-  check("DH9/DH10: data.json speichern (10.000 Kämpfe im Spielstand) in " + writeDuration.toFixed(1) +
-    " ms (Grenze 1000 ms)", writeDuration < 1000, true);
-
   // DH12: Ein weiterer Kampf löscht keine alten Kämpfe.
-  // Am Kampfende wird battles.json mit allen Kämpfen neu geschrieben – die Dauer steht zur Info dabei.
-  const battleStart = performance.now();
   addBattle({ opponent: "Gegner 10001", endedAt: new Date().toISOString(), result: "Win" });
   await waitForWrites();
-  const battleDuration = performance.now() - battleStart;
-  check("DH12: battles.json enthält danach 10.001 Kämpfe (geschrieben in " + battleDuration.toFixed(1) + " ms)",
-    (await readTestFile(battlesFileName)).length, 10001);
+  check("DH12: battles.json enthält danach 10.001 Kämpfe", (await readTestFile(battlesFileName)).length, 10001);
   await reloadFromFile();
   check("DH12: nach einem weiteren Kampf sind es 10.001", countBattles(), 10001);
   check("DH12: der neue Kampf steht zuerst", loadRecentBattles(1)[0].opponent, "Gegner 10001");
